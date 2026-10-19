@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Coffee-ish accent colour, usable as bg-coffee-600, text-coffee-800 etc. */
+@theme {
+  --color-coffee-50: #faf6f2;
+  --color-coffee-100: #f0e6dc;
+  --color-coffee-600: #8a5a3b;
+  --color-coffee-800: #4e3324;
+}
+
+body {
+  @apply bg-coffee-50 text-stone-900 antialiased;
+}
