@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PendingPhotos from '../components/PendingPhotos'
 import ScoreInput from '../components/ScoreInput'
+import StickyActions from '../components/StickyActions'
 import { useBeans } from '../hooks/useBeans'
 import { useBrew, useBrews, useSaveBrew } from '../hooks/useBrews'
 import { useNamedList } from '../hooks/useNamedList'
@@ -309,12 +310,12 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{formError ?? friendlyError(save.error)}</p>
       )}
 
-      <div className="flex gap-2">
+      <StickyActions>
+        <button type="button" onClick={() => navigate(-1)} className={secondaryButton}>Cancel</button>
         <button disabled={save.isPending || upload.isPending} className={`${primaryButton} flex-1`}>
           {upload.isPending ? 'Uploading photos…' : save.isPending ? 'Saving…' : 'Save brew'}
         </button>
-        <button type="button" onClick={() => navigate(-1)} className={secondaryButton}>Cancel</button>
-      </div>
+      </StickyActions>
     </form>
   )
 }

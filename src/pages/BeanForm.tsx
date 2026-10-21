@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import StickyActions from '../components/StickyActions'
 import { useBeans, useSaveBean, useSetBeanArchived } from '../hooks/useBeans'
 import { emptyToNull, friendlyError, todayIso } from '../lib/format'
 import { inputClass, labelClass, primaryButton, secondaryButton } from '../lib/styles'
@@ -119,12 +120,12 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
 
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{friendlyError(error)}</p>}
 
-      <div className="flex gap-2">
-        <button disabled={save.isPending} className={`${primaryButton} flex-1`}>
-          {save.isPending ? 'Saving…' : 'Save'}
-        </button>
+      <StickyActions>
         <button type="button" onClick={() => navigate('/beans')} className={secondaryButton}>Cancel</button>
-      </div>
+        <button disabled={save.isPending} className={`${primaryButton} flex-1`}>
+          {save.isPending ? 'Saving…' : 'Save bean'}
+        </button>
+      </StickyActions>
 
       {initial && (
         <button type="button" onClick={toggleArchived} disabled={setArchived.isPending} className="text-sm text-stone-500 underline">

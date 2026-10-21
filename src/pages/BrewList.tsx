@@ -4,7 +4,7 @@ import { useSignedUrls } from '../hooks/usePhotos'
 import { thumbPath } from '../lib/photos'
 import { drinkInfo } from '../lib/drinkTypes'
 import { formatDateTime, formatDuration, formatRatio, friendlyError } from '../lib/format'
-import { card, primaryButton } from '../lib/styles'
+import { card } from '../lib/styles'
 import type { BrewWithRelations } from '../lib/types'
 
 export default function BrewList() {
@@ -15,10 +15,7 @@ export default function BrewList() {
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">My brews</h2>
-        <Link to="/brews/new" className={primaryButton}>+ New brew</Link>
-      </div>
+      <h2 className="text-xl font-semibold">My brews</h2>
 
       {brews.isLoading && <p className="text-stone-500">Loading…</p>}
       {brews.error && <p className="text-red-700">{friendlyError(brews.error)}</p>}
