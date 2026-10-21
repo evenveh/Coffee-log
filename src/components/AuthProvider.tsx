@@ -7,7 +7,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Fires once right away with the stored session (or null), then again on every
-    // sign-in, sign-out and token refresh. Also picks up the session from a magic link.
+    // sign-in, sign-out and token refresh.
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setState({ session, loading: false })
     })
