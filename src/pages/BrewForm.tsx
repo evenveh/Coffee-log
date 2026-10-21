@@ -138,7 +138,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
     e.preventDefault()
     setFormError(null)
 
-    if (form.rating_overall === null) return setFormError('Give it an overall score.')
+    if (form.rating_overall === null) return setFormError('Choose an overall score under Taste before saving.')
 
     const numbers = {
       grind_setting: parseNumber(form.grind_setting),
@@ -148,7 +148,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
       water_temp_c: parseNumber(form.water_temp_c),
     }
     const bad = (Object.keys(numbers) as (keyof typeof numbers)[]).find((k) => Number.isNaN(numbers[k]))
-    if (bad) return setFormError(`${NUMBER_LABELS[bad]} must be a number.`)
+    if (bad) return setFormError(`${NUMBER_LABELS[bad]} must be a number, like 18.5${bad === 'time_s' ? ' or 3:30' : ''}.`)
 
     save.mutate(
       {

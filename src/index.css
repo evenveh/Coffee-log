@@ -46,14 +46,6 @@
   --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* TEMPORARY aliases so pages not yet redesigned keep working. Removed in the final step. */
-@theme inline {
-  --color-coffee-50: var(--bg);
-  --color-coffee-100: var(--line);
-  --color-coffee-600: var(--crema-ink);
-  --color-coffee-800: var(--ink);
-}
-
 /* Roast-level colours: information, not decoration. Same in both themes. */
 @theme {
   --color-roast-light: #d2a867;

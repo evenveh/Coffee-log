@@ -141,7 +141,7 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
 
       {initial && (
         <button type="button" onClick={toggleArchived} disabled={setArchived.isPending} className={`${textButton} self-start`}>
-          {initial.archived ? 'Restore from archive' : 'Archive this bean (bag finished)'}
+          {initial.archived ? 'Move back to current beans' : 'Mark bag as finished'}
         </button>
       )}
 

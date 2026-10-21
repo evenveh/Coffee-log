@@ -89,7 +89,7 @@ export function emptyToNull(value: string): string | null {
 // Turn database errors into something readable.
 export function friendlyError(error: unknown): string {
   const e = error as { code?: string; message?: string }
-  if (e?.code === '23505') return 'That name already exists.' // Postgres "unique violation"
-  if (e?.code === '23514') return 'A value is out of range.' // Postgres "check violation"
-  return e?.message ?? 'Something went wrong.'
+  if (e?.code === '23505') return 'That name is already in the list.' // Postgres "unique violation"
+  if (e?.code === '23514') return 'A number is out of range. Scores go from 1 to 10, and water temperature up to 100 °C.' // Postgres "check violation"
+  return e?.message ?? 'Something went wrong. Check your connection and try again.'
 }

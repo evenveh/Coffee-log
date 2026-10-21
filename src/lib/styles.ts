@@ -12,9 +12,5 @@ export const textButton = 'min-h-11 text-sm text-muted underline underline-offse
 export const pageTitle = 'text-2xl'
 export const sectionTitle = 'text-base font-semibold'
 
-// A list row: separated by hairlines instead of floating cards.
+// A list whose rows are separated by hairlines instead of floating cards.
 export const listClass = 'divide-y divide-line border-y border-line'
-export const rowClass = 'flex items-center gap-3 py-3'
-
-// TEMPORARY: old card look, still used by pages not yet redesigned. Removed in the final step.
-export const card = 'rounded-xl bg-surface p-4'

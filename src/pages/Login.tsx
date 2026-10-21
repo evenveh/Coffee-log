@@ -4,6 +4,25 @@ import { useAuth } from '../hooks/useAuth'
 import { inputClass, labelClass, primaryButton, textButton } from '../lib/styles'
 import { supabase } from '../lib/supabase'
 
+// Supabase's auth errors carry a stable `code`; match on that, not on the English message.
+function authMessage(error: { code?: string; message: string }): string {
+  switch (error.code) {
+    case 'invalid_credentials':
+      return 'Wrong email or password.'
+    case 'signup_disabled':
+      return 'New accounts are closed. Ask the person who runs this app to add you.'
+    case 'user_already_exists':
+      return 'There is already an account with this email. Sign in instead.'
+    case 'weak_password':
+      return 'Choose a longer password (at least 6 characters).'
+    case 'over_request_rate_limit':
+    case 'over_email_send_rate_limit':
+      return 'Too many attempts. Wait a minute and try again.'
+    default:
+      return error.message
+  }
+}
+
 export default function Login() {
   const { session } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -24,11 +43,11 @@ export default function Login() {
 
     if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
+      if (error) setError(authMessage(error))
       // On success, AuthProvider receives the new session and the <Navigate> above kicks in.
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password })
-      if (error) setError(error.message)
+      if (error) setError(authMessage(error))
       // If "Confirm email" is on in Supabase, there is no session until the email link is clicked.
       else if (!data.session) setInfo('Account created. Check your email to confirm it, then sign in.')
     }
