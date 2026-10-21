@@ -22,12 +22,12 @@ export default function BrewForm() {
   const existing = useBrew(id)
 
   if (id) {
-    if (existing.isLoading) return <p className="text-stone-500">Loading…</p>
-    if (!existing.data) return <p className="text-stone-500">Brew not found.</p>
+    if (existing.isLoading) return <p className="text-muted">Loading…</p>
+    if (!existing.data) return <p className="text-muted">This brew doesn't exist, or it was deleted.</p>
     return <BrewFormFields key={id} initial={existing.data} />
   }
 
-  if (fromId && brews.isLoading) return <p className="text-stone-500">Loading…</p>
+  if (fromId && brews.isLoading) return <p className="text-muted">Loading…</p>
   const copyFrom = brews.data?.find((b) => b.id === fromId)
   return <BrewFormFields key={fromId ?? 'new'} copyFrom={copyFrom} lastBrew={brews.data?.[0]} />
 }

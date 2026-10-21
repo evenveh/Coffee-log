@@ -7,9 +7,9 @@ export default defineConfig({
     ...preset,
     // Android "maskable" icon: the launcher crops it to a circle/squircle, so it needs
     // padding and a solid background.
-    maskable: { ...preset.maskable, resizeOptions: { background: '#4e3324' } },
+    maskable: { ...preset.maskable, resizeOptions: { background: '#22150f' } },
     // iOS home-screen icon: must not be transparent (iOS would fill it with black).
-    apple: { ...preset.apple, resizeOptions: { background: '#4e3324' } },
+    apple: { ...preset.apple, resizeOptions: { background: '#22150f' } },
   },
   images: ['public/logo.svg'],
 })

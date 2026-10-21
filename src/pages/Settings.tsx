@@ -4,7 +4,12 @@ import InstallCard from '../components/InstallCard'
 import NamedListEditor from '../components/NamedListEditor'
 import { useUser } from '../hooks/useAuth'
 import { useProfile, useUpdateDisplayName } from '../hooks/useProfile'
+import { friendlyError } from '../lib/format'
+import { inputClass, labelClass, pageTitle, secondaryButton, sectionTitle } from '../lib/styles'
 import { supabase } from '../lib/supabase'
+
+// Sections divided by hairlines, not cards.
+const section = 'flex flex-col gap-3 border-t border-line pt-5'
 
 export default function Settings() {
   const user = useUser()
@@ -26,46 +31,49 @@ export default function Settings() {
     queryClient.clear() // forget cached data so the next user on this device sees nothing of yours
   }
 
+  const profileError = profile.error ?? updateName.error
+
   return (
-    <section className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold">Settings</h2>
+    <div className="flex flex-col gap-6">
+      <h1 className={pageTitle}>Settings</h1>
 
-      <div className="rounded-xl bg-white p-4 shadow-sm">
-        <h3 className="mb-3 font-semibold">Profile</h3>
-        <p className="mb-3 text-sm text-stone-500">Signed in as {user.email}</p>
-
+      <section className="flex flex-col gap-3">
+        <h2 className={sectionTitle}>Profile</h2>
+        <p className="text-sm text-muted">Signed in as {user.email}</p>
         {profile.isLoading ? (
-          <p className="text-stone-500">Loading…</p>
+          <p className="text-muted">Loading…</p>
         ) : (
-          <form onSubmit={save} className="flex gap-2">
-            <input
-              aria-label="Display name"
-              value={shownName}
-              onChange={(e) => setName(e.target.value)}
-              className="flex-1 rounded-lg border border-stone-300 px-3 py-2"
-            />
-            <button
-              disabled={updateName.isPending || name === null}
-              className="rounded-lg bg-coffee-600 px-4 font-semibold text-white disabled:opacity-50"
-            >
-              {updateName.isPending ? 'Saving…' : 'Save'}
-            </button>
+          <form onSubmit={save}>
+            <label className={labelClass} htmlFor="display_name">Display name</label>
+            <div className="flex gap-2">
+              <input id="display_name" value={shownName} onChange={(e) => setName(e.target.value)} className={`${inputClass} flex-1`} />
+              <button disabled={updateName.isPending || name === null} className={secondaryButton}>
+                {updateName.isPending ? 'Saving…' : 'Save name'}
+              </button>
+            </div>
           </form>
         )}
-        {(profile.error || updateName.error) && (
-          <p className="mt-2 text-sm text-red-700">{(profile.error ?? updateName.error)?.message}</p>
-        )}
+        {profileError && <p className="text-sm text-danger">{friendlyError(profileError)}</p>}
+      </section>
+
+      <div className={section}>
+        <p className="text-sm text-muted">
+          Milks and grinders are shared with everyone using the app. Archive one instead of deleting it, so older brews keep their details.
+        </p>
+        <NamedListEditor table="milks" title="Milks" placeholder="Barista oat" />
       </div>
 
-      <p className="-mb-3 text-sm text-stone-500">Shared with everyone using the app. Archive instead of deleting, so old brews keep their details.</p>
-      <NamedListEditor table="milks" title="Milks" placeholder="e.g. Barista oat" />
-      <NamedListEditor table="grinders" title="Grinders" placeholder="e.g. Niche Zero" />
+      <div className={section}>
+        <NamedListEditor table="grinders" title="Grinders" placeholder="Niche Zero" />
+      </div>
 
-      <InstallCard />
+      <div className={section}>
+        <InstallCard />
+      </div>
 
-      <button onClick={signOut} className="rounded-lg border border-stone-300 bg-white py-2 font-medium text-stone-700">
-        Sign out
-      </button>
-    </section>
+      <div className={section}>
+        <button onClick={signOut} className={secondaryButton}>Sign out</button>
+      </div>
+    </div>
   )
 }

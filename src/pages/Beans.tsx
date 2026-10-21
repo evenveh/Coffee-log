@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import RoastSwatch from '../components/RoastSwatch'
 import { useBeans } from '../hooks/useBeans'
 import { daysSince, friendlyError } from '../lib/format'
-import { card, primaryButton } from '../lib/styles'
+import { listClass, pageTitle, primaryButton } from '../lib/styles'
 import type { Bean } from '../lib/types'
 
 export default function Beans() {
@@ -10,57 +11,70 @@ export default function Beans() {
   const [showArchived, setShowArchived] = useState(false)
 
   const visible = beans.data?.filter((b) => showArchived || !b.archived) ?? []
+  const archivedCount = beans.data?.filter((b) => b.archived).length ?? 0
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Beans</h2>
-        <Link to="/beans/new" className={primaryButton}>+ Add bean</Link>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className={pageTitle}>Beans</h1>
+        <Link to="/beans/new" className={primaryButton}>Add bean</Link>
       </div>
+      <p className="-mt-2 text-sm text-muted">Shared with everyone using the app.</p>
 
-      <label className="flex items-center gap-2 text-sm text-stone-600">
-        <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
-        Show archived
-      </label>
-
-      {beans.isLoading && <p className="text-stone-500">Loading…</p>}
-      {beans.error && <p className="text-red-700">{friendlyError(beans.error)}</p>}
+      {beans.isLoading && <p className="text-muted">Loading beans…</p>}
+      {beans.error && <p className="text-danger">Couldn't load the beans: {friendlyError(beans.error)}</p>}
       {beans.data && visible.length === 0 && (
-        <p className="text-stone-500">No beans yet. Add the bag you're currently brewing.</p>
+        <p className="text-muted">No beans yet. Add the bag you're brewing now, and pick it when you log a brew.</p>
       )}
 
-      <ul className="flex flex-col gap-3">
-        {visible.map((bean) => (
-          <li key={bean.id}>
-            <Link to={`/beans/${bean.id}`} className={`${card} block ${bean.archived ? 'opacity-50' : ''}`}>
-              <BeanSummary bean={bean} />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {visible.length > 0 && (
+        <ul className={listClass}>
+          {visible.map((bean) => (
+            <li key={bean.id}>
+              <BeanRow bean={bean} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {archivedCount > 0 && (
+        <label className="flex min-h-11 items-center gap-2 text-sm text-muted">
+          <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="size-4 accent-crema" />
+          Show finished bags ({archivedCount})
+        </label>
+      )}
     </section>
   )
 }
 
-function BeanSummary({ bean }: { bean: Bean }) {
-  // Only show the details that are filled in, joined with dots.
-  const details = [bean.origin, bean.process, bean.roast_level].filter(Boolean).join(' · ')
+function BeanRow({ bean }: { bean: Bean }) {
+  // "Ethiopia, washed": a plain phrase instead of dot-separated fragments.
+  const details = [bean.origin, bean.process?.toLowerCase()].filter(Boolean).join(', ')
+  const days = bean.roast_date ? daysSince(bean.roast_date) : null
 
   return (
-    <>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          {bean.roaster && <p className="text-xs uppercase tracking-wide text-stone-500">{bean.roaster}</p>}
-          <p className="font-semibold">{bean.name}</p>
-        </div>
-        {bean.archived && <span className="rounded bg-stone-200 px-2 py-0.5 text-xs">Archived</span>}
+    <Link to={`/beans/${bean.id}`} className={`flex items-center gap-3 py-3 ${bean.archived ? 'opacity-60' : ''}`}>
+      {/* Like the colour sticker on a roaster's bag. */}
+      <RoastSwatch level={bean.roast_level} className="size-12 rounded-lg" />
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{bean.name}</p>
+        {bean.roaster && <p className="truncate text-sm text-muted">{bean.roaster}</p>}
+        {(details || bean.archived) && (
+          <p className="truncate text-sm text-muted">
+            {details}
+            {bean.archived && (details ? ', finished' : 'Finished')}
+          </p>
+        )}
       </div>
-      {details && <p className="text-sm text-stone-600">{details}</p>}
-      {bean.roast_date && (
-        <p className="mt-1 text-sm text-coffee-600">
-          Roasted {bean.roast_date} · {daysSince(bean.roast_date)} days off roast
+
+      {/* Freshness is the number a barista checks on a bag. */}
+      {days !== null && (
+        <p className="flex shrink-0 flex-col items-end">
+          <span className="num text-3xl leading-none">{days}</span>
+          <span className="text-xs text-muted">days off roast</span>
         </p>
       )}
-    </>
+    </Link>
   )
 }

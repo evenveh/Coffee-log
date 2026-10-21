@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 export default function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth()
 
-  if (loading) return <p className="p-8 text-center text-stone-500">Loading…</p>
+  if (loading) return <p className="p-8 text-center text-muted">Loading…</p>
   if (!session) return <Navigate to="/login" replace />
   return children
 }

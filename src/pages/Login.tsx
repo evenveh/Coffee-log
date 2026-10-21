@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { inputClass, labelClass, primaryButton, textButton } from '../lib/styles'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
@@ -42,45 +43,46 @@ export default function Login() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 pt-[env(safe-area-inset-top)]">
-      <h1 className="mb-1 text-3xl font-bold text-coffee-800">☕ Coffee Log</h1>
-      <p className="mb-8 text-stone-500">{mode === 'signin' ? 'Sign in to log your brews.' : 'Create your account.'}</p>
+      <img src="/logo.svg" alt="" className="mb-5 size-16 rounded-2xl" />
+      {/* The wordmark uses the same condensed numerals style as the recipes. */}
+      <h1 className="num text-5xl leading-none">Coffee Log</h1>
+      <p className="mt-2 mb-8 text-muted">
+        {mode === 'signin' ? 'Sign in to your brew log.' : 'Create an account to start your brew log.'}
+      </p>
 
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        <label className="text-sm font-medium" htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2"
-        />
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <div>
+          <label className={labelClass} htmlFor="email">Email</label>
+          <input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+        </div>
 
-        <label className="text-sm font-medium" htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          required
-          minLength={6}
-          // Tells password managers whether to fill a saved password or suggest a new one.
-          autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-stone-300 px-3 py-2"
-        />
+        <div>
+          <label className={labelClass} htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            required
+            minLength={6}
+            // Tells password managers whether to fill a saved password or suggest a new one.
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputClass}
+          />
+          {mode === 'signup' && <p className="mt-1 text-sm text-muted">At least 6 characters.</p>}
+        </div>
 
-        <button disabled={busy} className="mt-2 rounded-lg bg-coffee-600 py-2 font-semibold text-white disabled:opacity-50">
+        <button disabled={busy} className={`${primaryButton} mt-2`}>
           {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
         </button>
       </form>
 
-      <button type="button" onClick={switchMode} className="mt-4 text-sm text-stone-500 underline">
+      {error && <p role="alert" className="mt-4 rounded-lg border border-danger/40 p-3 text-sm text-danger">{error}</p>}
+      {info && <p role="status" className="mt-4 rounded-lg border border-line p-3 text-sm">{info}</p>}
+
+      <button type="button" onClick={switchMode} className={`${textButton} mt-4 self-start`}>
         {mode === 'signin' ? 'No account yet? Create one' : 'Already have an account? Sign in'}
       </button>
-
-      {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-      {info && <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{info}</p>}
     </div>
   )
 }
