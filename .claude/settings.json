@@ -1,4 +1,7 @@
 {
+  "permissions": {
+  "deny": ["Read(./.env*)", "Edit(./.env*)", "Read(**/secrets/**)"]
+  },
   "hooks": {
     "PreToolUse": [
       {
