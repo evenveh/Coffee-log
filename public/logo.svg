@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background: coffee-800 rounded square -->
+  <rect width="512" height="512" rx="112" fill="#4e3324"/>
+  <g transform="translate(14 0)" fill="none" stroke="#faf6f2" stroke-linecap="round">
+    <!-- Steam -->
+    <path d="M186 168 c-18 -22 18 -38 0 -64" stroke-width="16"/>
+    <path d="M232 168 c-18 -22 18 -38 0 -64" stroke-width="16"/>
+    <path d="M278 168 c-18 -22 18 -38 0 -64" stroke-width="16"/>
+    <!-- Handle -->
+    <path d="M330 228 h22 a42 42 0 0 1 0 84 h-30" stroke-width="22"/>
+  </g>
+  <g transform="translate(14 0)" fill="#faf6f2">
+    <!-- Cup -->
+    <path d="M132 200 H332 V276 A100 100 0 0 1 232 376 A100 100 0 0 1 132 276 Z"/>
+    <!-- Saucer -->
+    <rect x="102" y="392" width="260" height="20" rx="10"/>
+  </g>
+</svg>

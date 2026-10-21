@@ -64,7 +64,7 @@ export default function PhotoGallery({ brewId, photos }: Props) {
             className="min-h-0 flex-1 object-contain p-2"
           />
           {/* stopPropagation: clicks on the buttons shouldn't also count as "click the backdrop" */}
-          <div className="flex justify-between p-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex justify-between p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
             <button onClick={deleteOpen} disabled={remove.isPending} className="text-sm text-red-300 underline">
               {remove.isPending ? 'Deleting…' : 'Delete photo'}
             </button>

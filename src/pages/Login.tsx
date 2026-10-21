@@ -41,7 +41,7 @@ export default function Login() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6">
+    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 pt-[env(safe-area-inset-top)]">
       <h1 className="mb-1 text-3xl font-bold text-coffee-800">☕ Coffee Log</h1>
       <p className="mb-8 text-stone-500">{mode === 'signin' ? 'Sign in to log your brews.' : 'Create your account.'}</p>
 
