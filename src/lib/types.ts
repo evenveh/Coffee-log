@@ -51,6 +51,13 @@ export type BrewWithRelations = Brew & {
   bean: Pick<Bean, 'id' | 'name' | 'roaster' | 'roast_date'> | null
   milk: { name: string } | null
   grinder: { name: string } | null
+  photos: BrewPhoto[]
+}
+
+export type BrewPhoto = {
+  id: string
+  storage_path: string // full-size image; see thumbPath() for the thumbnail
+  created_at: string
 }
 
 // Milks and grinders share this shape.

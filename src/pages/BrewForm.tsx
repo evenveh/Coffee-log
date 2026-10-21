@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import PendingPhotos from '../components/PendingPhotos'
 import ScoreInput from '../components/ScoreInput'
 import { useBeans } from '../hooks/useBeans'
 import { useBrew, useBrews, useSaveBrew } from '../hooks/useBrews'
 import { useNamedList } from '../hooks/useNamedList'
+import { useUploadPhotos } from '../hooks/usePhotos'
 import { DRINK_TYPES, drinkInfo, type DrinkType } from '../lib/drinkTypes'
 import { daysSince, emptyToNull, formatDateTime, formatRatio, friendlyError, parseNumber, toLocalInput } from '../lib/format'
 import { card, inputClass, labelClass, primaryButton, secondaryButton } from '../lib/styles'
@@ -104,6 +106,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   const grinders = useNamedList('grinders')
   const milks = useNamedList('milks')
   const [formError, setFormError] = useState<string | null>(null)
+  const upload = useUploadPhotos()
+  const [photos, setPhotos] = useState<File[]>([]) // picked, not uploaded yet
 
   const [form, setForm] = useState<FormState>(() => ({
     brewed_at: toLocalInput(initial?.brewed_at ?? new Date().toISOString()),
@@ -162,7 +166,20 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
         body: form.body,
         notes: emptyToNull(form.notes),
       },
-      { onSuccess: (brewId) => navigate(`/brews/${brewId}`, { replace: true }) },
+      {
+        // The brew now exists and has an id, so the photos can be uploaded under it.
+        onSuccess: async (brewId) => {
+          if (photos.length > 0) {
+            try {
+              await upload.mutateAsync({ brewId, files: photos })
+            } catch (err) {
+              // The brew is saved, so don't stay here (saving again would duplicate it).
+              window.alert(`The brew was saved, but the photo upload failed: ${friendlyError(err)}\nYou can add the photos from the brew's page.`)
+            }
+          }
+          navigate(`/brews/${brewId}`, { replace: true })
+        },
+      },
     )
   }
 
@@ -283,13 +300,18 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
         </div>
       </div>
 
+      {/* ---------------- Photos ---------------- */}
+      <div className={card}>
+        <PendingPhotos files={photos} onChange={setPhotos} />
+      </div>
+
       {(formError || save.error) && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{formError ?? friendlyError(save.error)}</p>
       )}
 
       <div className="flex gap-2">
-        <button disabled={save.isPending} className={`${primaryButton} flex-1`}>
-          {save.isPending ? 'Saving…' : 'Save brew'}
+        <button disabled={save.isPending || upload.isPending} className={`${primaryButton} flex-1`}>
+          {upload.isPending ? 'Uploading photos…' : save.isPending ? 'Saving…' : 'Save brew'}
         </button>
         <button type="button" onClick={() => navigate(-1)} className={secondaryButton}>Cancel</button>
       </div>

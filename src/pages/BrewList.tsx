@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useBrews } from '../hooks/useBrews'
+import { useSignedUrls } from '../hooks/usePhotos'
+import { thumbPath } from '../lib/photos'
 import { drinkInfo } from '../lib/drinkTypes'
 import { formatDateTime, formatDuration, formatRatio, friendlyError } from '../lib/format'
 import { card, primaryButton } from '../lib/styles'
@@ -7,6 +9,9 @@ import type { BrewWithRelations } from '../lib/types'
 
 export default function BrewList() {
   const brews = useBrews()
+  // Cover = first photo of each brew. Signed in one batch request.
+  const cover = (brew: BrewWithRelations) => (brew.photos[0] ? thumbPath(brew.photos[0].storage_path) : null)
+  const coverUrls = useSignedUrls(brews.data?.map(cover).filter((p) => p !== null) ?? [])
 
   return (
     <section className="flex flex-col gap-4">
@@ -23,6 +28,7 @@ export default function BrewList() {
         {brews.data?.map((brew) => (
           <li key={brew.id}>
             <Link to={`/brews/${brew.id}`} className={`${card} flex items-center gap-3`}>
+              <Thumbnail url={coverUrls.data?.[cover(brew) ?? '']} />
               <BrewSummary brew={brew} />
               <ScoreBadge score={brew.rating_overall} />
             </Link>
@@ -52,6 +58,14 @@ function BrewSummary({ brew }: { brew: BrewWithRelations }) {
       <p className="text-xs text-stone-500">{formatDateTime(brew.brewed_at)}</p>
       {recipe && <p className="text-sm text-stone-600">{recipe}</p>}
     </div>
+  )
+}
+
+function Thumbnail({ url }: { url?: string }) {
+  return (
+    <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-coffee-100 text-2xl">
+      {url ? <img src={url} alt="" loading="lazy" className="size-full object-cover" /> : <span aria-hidden>☕</span>}
+    </span>
   )
 }
 

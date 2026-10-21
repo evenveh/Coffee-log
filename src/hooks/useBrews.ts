@@ -1,10 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { supabase } from '../lib/supabase'
 import type { BrewInput, BrewWithRelations } from '../lib/types'
 
 // "*" = all brew columns. "bean:beans(...)" = follow bean_id into the beans table and
 // include those columns as brew.bean. Same for milk and grinder. One request, no extra lookups.
-const BREW_SELECT = '*, bean:beans(id, name, roaster, roast_date), milk:milks(name), grinder:grinders(name)'
+const BREW_SELECT =
+  '*, bean:beans(id, name, roaster, roast_date), milk:milks(name), grinder:grinders(name), photos:brew_photos(id, storage_path, created_at)'
+
+// Oldest photo first, so the first one you added is the "cover" shown in the list.
+function sortPhotos(brew: BrewWithRelations) {
+  brew.photos.sort((a, b) => a.created_at.localeCompare(b.created_at))
+  return brew
+}
 
 // My brews, newest first. No user filter needed: RLS only ever returns your own rows.
 export function useBrews() {
@@ -16,7 +24,7 @@ export function useBrews() {
         .select(BREW_SELECT)
         .order('brewed_at', { ascending: false })
       if (error) throw error
-      return data as BrewWithRelations[]
+      return (data as BrewWithRelations[]).map(sortPhotos)
     },
   })
 }
@@ -29,7 +37,7 @@ export function useBrew(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase.from('brews').select(BREW_SELECT).eq('id', id!).maybeSingle()
       if (error) throw error
-      return data as BrewWithRelations | null // null = not found (or not yours)
+      return data ? sortPhotos(data as BrewWithRelations) : null // null = not found (or not yours)
     },
   })
 }
@@ -54,6 +62,16 @@ export function useDeleteBrew() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
+      // 1. Remove the photo files. The database cascade only deletes the brew_photos rows,
+      //    so without this the files would stay in Storage forever, using up space.
+      const { data: photos, error: listError } = await supabase.from('brew_photos').select('storage_path').eq('brew_id', id)
+      if (listError) throw listError
+      const paths = photos.flatMap((p) => [p.storage_path, thumbPath(p.storage_path)])
+      if (paths.length > 0) {
+        const { error: storageError } = await supabase.storage.from(PHOTO_BUCKET).remove(paths)
+        if (storageError) throw storageError
+      }
+      // 2. Delete the brew (its brew_photos rows go with it).
       const { error } = await supabase.from('brews').delete().eq('id', id)
       if (error) throw error
     },

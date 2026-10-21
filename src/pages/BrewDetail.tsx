@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import PhotoGallery from '../components/PhotoGallery'
 import { useBrew, useDeleteBrew } from '../hooks/useBrews'
 import { drinkInfo } from '../lib/drinkTypes'
 import { daysSince, formatDateTime, formatDuration, formatRatio, friendlyError } from '../lib/format'
@@ -40,7 +41,7 @@ export default function BrewDetail() {
 
   function confirmDelete() {
     // The browser's built-in confirm dialog: simple and works everywhere.
-    if (!window.confirm('Delete this brew? This cannot be undone.')) return
+    if (!window.confirm('Delete this brew and its photos? This cannot be undone.')) return
     remove.mutate(b.id, { onSuccess: () => navigate('/', { replace: true }) })
   }
 
@@ -86,6 +87,8 @@ export default function BrewDetail() {
       )}
 
       {b.notes && <p className={`${card} whitespace-pre-wrap`}>{b.notes}</p>}
+
+      <PhotoGallery brewId={b.id} photos={b.photos} />
 
       {remove.error && <p className="text-sm text-red-700">{friendlyError(remove.error)}</p>}
 
