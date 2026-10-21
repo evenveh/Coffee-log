@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
+import BeanForm from './pages/BeanForm'
 import Beans from './pages/Beans'
 import BrewList from './pages/BrewList'
 import Login from './pages/Login'
@@ -21,6 +22,8 @@ export default function App() {
       >
         <Route path="/" element={<BrewList />} />
         <Route path="/beans" element={<Beans />} />
+        <Route path="/beans/new" element={<BeanForm />} />
+        <Route path="/beans/:id" element={<BeanForm />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
 

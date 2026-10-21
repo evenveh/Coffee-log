@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import NamedListEditor from '../components/NamedListEditor'
 import { useUser } from '../hooks/useAuth'
 import { useProfile, useUpdateDisplayName } from '../hooks/useProfile'
 import { supabase } from '../lib/supabase'
@@ -55,7 +56,9 @@ export default function Settings() {
         )}
       </div>
 
-      <p className="text-sm text-stone-500">Milks and grinders come in Phase 4.</p>
+      <p className="-mb-3 text-sm text-stone-500">Shared with everyone using the app. Archive instead of deleting, so old brews keep their details.</p>
+      <NamedListEditor table="milks" title="Milks" placeholder="e.g. Barista oat" />
+      <NamedListEditor table="grinders" title="Grinders" placeholder="e.g. Niche Zero" />
 
       <button onClick={signOut} className="rounded-lg border border-stone-300 bg-white py-2 font-medium text-stone-700">
         Sign out
