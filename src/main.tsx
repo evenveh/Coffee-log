@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import AuthProvider from './components/AuthProvider.tsx'
+import '@fontsource-variable/archivo/wdth.css' // Archivo with weight AND width axes, self-hosted
 import './index.css'
 import './lib/installPrompt' // start listening for Android's install prompt right away
 

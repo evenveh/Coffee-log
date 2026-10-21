@@ -1,6 +1,20 @@
-// Reusable Tailwind class strings, so form controls look the same everywhere.
-export const inputClass = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2'
-export const labelClass = 'mb-1 block text-sm font-medium'
-export const primaryButton = 'rounded-lg bg-coffee-600 px-4 py-2 font-semibold text-white disabled:opacity-50'
-export const secondaryButton = 'rounded-lg border border-stone-300 bg-white px-4 py-2 font-medium text-stone-700 disabled:opacity-50'
-export const card = 'rounded-xl bg-white p-4 shadow-sm'
+// Reusable Tailwind class strings, so controls look the same everywhere.
+// Colours are theme tokens (see index.css), so these work in light and dark mode.
+
+// min-h-11 = 44px: a comfortable touch target. text-base (16px) stops iOS zooming on focus.
+export const inputClass = 'min-h-11 w-full rounded-lg border border-line bg-surface px-3 py-2 text-base text-ink placeholder:text-muted/70'
+export const labelClass = 'mb-1 block text-sm font-medium text-muted'
+export const primaryButton = 'inline-flex min-h-11 items-center justify-center rounded-lg bg-crema px-4 font-semibold text-on-crema disabled:opacity-50'
+export const secondaryButton = 'inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-surface px-4 font-medium text-ink disabled:opacity-50'
+export const textButton = 'min-h-11 text-sm text-muted underline underline-offset-2'
+
+// Page title and section headings.
+export const pageTitle = 'text-2xl'
+export const sectionTitle = 'text-base font-semibold'
+
+// A list row: separated by hairlines instead of floating cards.
+export const listClass = 'divide-y divide-line border-y border-line'
+export const rowClass = 'flex items-center gap-3 py-3'
+
+// TEMPORARY: old card look, still used by pages not yet redesigned. Removed in the final step.
+export const card = 'rounded-xl bg-surface p-4'

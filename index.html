@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Coffee Log</title>
     <meta name="description" content="Log and rate your espresso and filter brews." />
-    <meta name="theme-color" content="#4e3324" />
+    <!-- Browser/status bar colour, matching the page background in each theme -->
+    <meta name="theme-color" content="#eef0ed" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#17110d" media="(prefers-color-scheme: dark)" />
 
     <!-- Icons: browsers use favicon.ico/svg, iOS uses apple-touch-icon for the home screen -->
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -17,7 +19,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Coffee Log" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   </head>
   <body>
     <div id="root"></div>

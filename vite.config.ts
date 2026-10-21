@@ -16,8 +16,8 @@ export default defineConfig({
         name: 'Coffee Log',
         short_name: 'Coffee Log',
         description: 'Log and rate your espresso and filter brews.',
-        theme_color: '#4e3324', // status bar / title bar colour (coffee-800)
-        background_color: '#faf6f2', // splash screen colour while starting (coffee-50)
+        theme_color: '#eef0ed', // title bar colour (porcelain; the page's theme-color meta handles dark mode)
+        background_color: '#eef0ed', // splash screen colour while starting
         display: 'standalone', // full screen, no browser address bar
         start_url: '/',
         icons: [
@@ -30,7 +30,8 @@ export default defineConfig({
       workbox: {
         // Precache the app shell. Supabase requests (data, photos) are on another domain
         // and are never cached, so data is always live.
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // woff2 = the font files, so the app's typography also works offline.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Any in-app URL (e.g. /brews/123) is served index.html; React Router takes it from there.
         navigateFallback: '/index.html',
       },

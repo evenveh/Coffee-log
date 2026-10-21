@@ -1,13 +1,98 @@
 @import "tailwindcss";
 
-/* Coffee-ish accent colour, usable as bg-coffee-600, text-coffee-800 etc. */
-@theme {
-  --color-coffee-50: #faf6f2;
-  --color-coffee-100: #f0e6dc;
-  --color-coffee-600: #8a5a3b;
-  --color-coffee-800: #4e3324;
+/* =====================================================================
+   Design tokens: "Dial-in notebook"
+   Components use names (bg-bg, text-ink, bg-crema...), never raw hex.
+   The dark theme only swaps the variable values below.
+   ===================================================================== */
+:root {
+  --bg: #eef0ed;        /* porcelain: cool off-white, like a cup */
+  --surface: #f8f9f7;   /* inputs, nav, sheets */
+  --ink: #22150f;       /* espresso */
+  --muted: #6b625c;     /* secondary text */
+  --line: #d5d8d3;      /* hairlines and borders */
+  --crema: #b07a2e;     /* scores, ratio, primary button. Fills and large text only */
+  --crema-ink: #7e5418; /* small accent text (AA on bg) */
+  --on-crema: #22150f;  /* text on a crema button */
+  --danger: #a33a2a;
+  color-scheme: light dark; /* native controls (date pickers, scrollbars) follow the theme */
 }
 
-body {
-  @apply bg-coffee-50 text-stone-900 antialiased;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17110d;        /* roast */
+    --surface: #221912;
+    --ink: #ede6dd;       /* steamed milk */
+    --muted: #a79c92;
+    --line: #3a2e25;
+    --crema: #d6a257;
+    --crema-ink: #e2b571;
+    --on-crema: #17110d;
+    --danger: #e07a66;
+  }
+}
+
+/* "inline" = Tailwind classes refer to the variables, so they follow the theme. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-crema: var(--crema);
+  --color-crema-ink: var(--crema-ink);
+  --color-on-crema: var(--on-crema);
+  --color-danger: var(--danger);
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* TEMPORARY aliases so pages not yet redesigned keep working. Removed in the final step. */
+@theme inline {
+  --color-coffee-50: var(--bg);
+  --color-coffee-100: var(--line);
+  --color-coffee-600: var(--crema-ink);
+  --color-coffee-800: var(--ink);
+}
+
+/* Roast-level colours: information, not decoration. Same in both themes. */
+@theme {
+  --color-roast-light: #d2a867;
+  --color-roast-medium-light: #b5823f;
+  --color-roast-medium: #8c5a2b;
+  --color-roast-medium-dark: #5f3b1f;
+  --color-roast-dark: #2e1d12;
+}
+
+@layer base {
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    font-stretch: 100%;
+  }
+
+  h1, h2, h3 {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  /* One consistent, clearly visible keyboard focus ring. */
+  :focus-visible {
+    outline: 2px solid var(--crema);
+    outline-offset: 2px;
+  }
+}
+
+/* The signature: condensed, tabular numerals for recipes and scores. */
+@utility num {
+  font-stretch: 68%;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Respect "reduce motion" in the OS: no transitions or animations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
