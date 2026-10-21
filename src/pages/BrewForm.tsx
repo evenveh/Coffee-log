@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PendingPhotos from '../components/PendingPhotos'
+import RoastSwatch from '../components/RoastSwatch'
 import ScoreInput from '../components/ScoreInput'
 import StickyActions from '../components/StickyActions'
 import { useBeans } from '../hooks/useBeans'
@@ -9,7 +10,7 @@ import { useNamedList } from '../hooks/useNamedList'
 import { useUploadPhotos } from '../hooks/usePhotos'
 import { DRINK_TYPES, drinkInfo, type DrinkType } from '../lib/drinkTypes'
 import { daysSince, emptyToNull, formatDateTime, formatRatio, friendlyError, parseNumber, toLocalInput } from '../lib/format'
-import { card, inputClass, labelClass, primaryButton, secondaryButton } from '../lib/styles'
+import { inputClass, labelClass, pageTitle, primaryButton, secondaryButton, sectionTitle } from '../lib/styles'
 import type { Brew } from '../lib/types'
 
 // Route wrapper: /brews/new, /brews/new?from=<id> (copy a brew), /brews/:id/edit.
@@ -185,73 +186,54 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{initial ? 'Edit brew' : 'New brew'}</h2>
-        {!initial && lastBrew && (
-          <button
-            type="button"
-            onClick={() => setForm((f) => ({ ...f, ...recipeFields(lastBrew) }))}
-            className="text-sm text-coffee-600 underline"
-          >
-            Copy last brew
-          </button>
-        )}
+    <form onSubmit={submit} className="flex flex-col gap-6">
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className={pageTitle}>{initial ? 'Edit brew' : 'Log brew'}</h1>
+          {!initial && lastBrew && (
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, ...recipeFields(lastBrew) }))}
+              className="min-h-11 text-sm text-crema-ink underline underline-offset-2"
+            >
+              Copy last brew
+            </button>
+          )}
+        </div>
+        {copyFrom && <p className="text-sm text-muted">Recipe copied from {formatDateTime(copyFrom.brewed_at)}.</p>}
       </div>
-      {copyFrom && <p className="-mt-3 text-sm text-stone-500">Recipe copied from {formatDateTime(copyFrom.brewed_at)}.</p>}
 
       {/* ---------------- Drink ---------------- */}
-      <div className={`${card} grid grid-cols-2 gap-3`}>
-        <div>
-          <label className={labelClass} htmlFor="drink_type">Drink</label>
-          <select id="drink_type" value={form.drink_type} onChange={text('drink_type')} className={inputClass}>
-            <optgroup label="Espresso">
-              {DRINK_TYPES.filter((d) => d.category === 'espresso').map((d) => (
-                <option key={d.value} value={d.value}>{d.label}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Filter">
-              {DRINK_TYPES.filter((d) => d.category === 'filter').map((d) => (
-                <option key={d.value} value={d.value}>{d.label}</option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="brewed_at">When</label>
-          <input id="brewed_at" type="datetime-local" required value={form.brewed_at} onChange={text('brewed_at')} className={inputClass} />
-        </div>
+      <fieldset className="flex flex-col gap-3">
+        <legend className="sr-only">Drink</legend>
+        <DrinkChips group="Espresso" category="espresso" value={form.drink_type} onChange={(v) => set('drink_type', v)} />
+        <DrinkChips group="Filter" category="filter" value={form.drink_type} onChange={(v) => set('drink_type', v)} />
+      </fieldset>
+
+      <div>
+        <label className={labelClass} htmlFor="brewed_at">When</label>
+        <input id="brewed_at" type="datetime-local" required value={form.brewed_at} onChange={text('brewed_at')} className={inputClass} />
       </div>
 
       {/* ---------------- Recipe ---------------- */}
-      <div className={`${card} flex flex-col gap-3`}>
-        <h3 className="font-semibold">Recipe</h3>
+      <section className={section}>
+        <h2 className={sectionTitle}>Recipe</h2>
 
         <div>
           <label className={labelClass} htmlFor="bean_id">Bean</label>
-          <select id="bean_id" value={form.bean_id} onChange={text('bean_id')} className={inputClass}>
-            <option value="">–</option>
-            {active(beans.data, form.bean_id).map((b) => (
-              <option key={b.id} value={b.id}>{b.roaster ? `${b.roaster} – ${b.name}` : b.name}</option>
-            ))}
-          </select>
-          {daysOff !== null && !Number.isNaN(daysOff) && <p className="mt-1 text-xs text-coffee-600">{daysOff} days off roast</p>}
-          {beans.data?.length === 0 && (
-            <p className="mt-1 text-xs text-stone-500">No beans yet. <Link to="/beans/new" className="underline">Add one</Link></p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelClass} htmlFor="grinder_id">Grinder</label>
-            <select id="grinder_id" value={form.grinder_id} onChange={text('grinder_id')} className={inputClass}>
-              <option value="">–</option>
-              {active(grinders.data, form.grinder_id).map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
+          <div className="flex items-center gap-2">
+            <RoastSwatch level={selectedBean?.roast_level} className="size-11 rounded-lg" />
+            <select id="bean_id" value={form.bean_id} onChange={text('bean_id')} className={inputClass}>
+              <option value="">No bean selected</option>
+              {active(beans.data, form.bean_id).map((b) => (
+                <option key={b.id} value={b.id}>{b.roaster ? `${b.name} (${b.roaster})` : b.name}</option>
               ))}
             </select>
           </div>
-          <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="e.g. 14" />
+          {daysOff !== null && !Number.isNaN(daysOff) && <p className="mt-1 text-sm text-crema-ink">{daysOff} days off roast</p>}
+          {beans.data?.length === 0 && (
+            <p className="mt-1 text-sm text-muted">The bean list is empty. <Link to="/beans/new" className="text-ink underline">Add a bean</Link></p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -261,24 +243,41 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
           <NumberField id="time_s" label={isFilter ? 'Brew time (m:ss)' : 'Time (s)'} value={form.time_s} onChange={text('time_s')} placeholder={isFilter ? '3:00' : '28'} keyboard={isFilter ? 'text' : 'decimal'} />
           <NumberField id="water_temp_c" label="Water temp (°C)" value={form.water_temp_c} onChange={text('water_temp_c')} placeholder={isFilter ? '96' : '93'} />
         </div>
-        {ratio && <p className="text-sm font-medium text-coffee-600">Ratio {ratio}</p>}
+        {/* Live: recalculated on every keystroke because the form re-renders. */}
+        <p className="flex items-baseline gap-2" aria-live="polite">
+          <span className="text-sm text-muted">Ratio</span>
+          <span className="num text-2xl text-crema-ink">{ratio ?? '–'}</span>
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass} htmlFor="grinder_id">Grinder</label>
+            <select id="grinder_id" value={form.grinder_id} onChange={text('grinder_id')} className={inputClass}>
+              <option value="">None</option>
+              {active(grinders.data, form.grinder_id).map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          </div>
+          <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="14" />
+        </div>
 
         {info.milk && (
           <div>
             <label className={labelClass} htmlFor="milk_id">Milk</label>
             <select id="milk_id" value={form.milk_id} onChange={text('milk_id')} className={inputClass}>
-              <option value="">–</option>
+              <option value="">None</option>
               {active(milks.data, form.milk_id).map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
           </div>
         )}
-      </div>
+      </section>
 
       {/* ---------------- Taste ---------------- */}
-      <div className={`${card} flex flex-col gap-4`}>
-        <h3 className="font-semibold">Taste</h3>
+      <section className={section}>
+        <h2 className={sectionTitle}>Taste</h2>
         <ScoreInput label="Overall" required value={form.rating_overall} onChange={(v) => set('rating_overall', v)} />
         {info.milk && (
           <ScoreInput label="Latte art" value={form.latte_art_rating} onChange={(v) => set('latte_art_rating', v)} />
@@ -286,8 +285,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
 
         {/* <details> is a built-in collapsible section. Open it if any sub-score is already set. */}
         <details open={[form.sweetness, form.acidity, form.bitterness, form.body].some((v) => v !== null)}>
-          <summary className="cursor-pointer text-sm text-stone-600">More scores (sweetness, acidity, …)</summary>
-          <div className="mt-3 flex flex-col gap-4">
+          <summary className="min-h-11 cursor-pointer py-2 text-sm text-muted">Sweetness, acidity, bitterness and body</summary>
+          <div className="mt-2 flex flex-col gap-4">
             <ScoreInput label="Sweetness" value={form.sweetness} onChange={(v) => set('sweetness', v)} />
             <ScoreInput label="Acidity" value={form.acidity} onChange={(v) => set('acidity', v)} />
             <ScoreInput label="Bitterness" value={form.bitterness} onChange={(v) => set('bitterness', v)} />
@@ -299,15 +298,17 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
           <label className={labelClass} htmlFor="notes">Notes</label>
           <textarea id="notes" rows={3} value={form.notes} onChange={text('notes')} className={inputClass} placeholder="Chocolatey, a bit sour, channeled…" />
         </div>
-      </div>
+      </section>
 
       {/* ---------------- Photos ---------------- */}
-      <div className={card}>
+      <section className={section}>
         <PendingPhotos files={photos} onChange={setPhotos} />
-      </div>
+      </section>
 
       {(formError || save.error) && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{formError ?? friendlyError(save.error)}</p>
+        <p role="alert" className="rounded-lg border border-danger/40 p-3 text-sm text-danger">
+          {formError ?? `Couldn't save the brew: ${friendlyError(save.error)}`}
+        </p>
       )}
 
       <StickyActions>
@@ -320,7 +321,38 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   )
 }
 
-// A text input with the numeric keyboard (type="text" so commas and "3:30" are allowed).
+// A section of the form: a hairline above it instead of a card around it.
+const section = 'flex flex-col gap-4 border-t border-line pt-5'
+
+// One group of drink-type chips. They are real radio buttons (hidden with sr-only), so
+// arrow keys and screen readers work; the visible chip is styled with peer-checked.
+function DrinkChips(props: { group: string; category: 'espresso' | 'filter'; value: DrinkType; onChange: (v: DrinkType) => void }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-sm text-muted">{props.group}</p>
+      <div className="flex flex-wrap gap-2">
+        {DRINK_TYPES.filter((d) => d.category === props.category).map((d) => (
+          <label key={d.value} className="cursor-pointer">
+            <input
+              type="radio"
+              name="drink_type"
+              value={d.value}
+              checked={props.value === d.value}
+              onChange={() => props.onChange(d.value)}
+              className="peer sr-only"
+            />
+            <span className="inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-sm peer-checked:border-ink peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-crema">
+              {d.label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// A text input for numbers, shown in the condensed recipe numerals.
+// type="text" (the default) so commas and "3:30" are allowed; inputMode picks the keyboard.
 type NumberFieldProps = {
   id: string
   label: string
@@ -340,7 +372,7 @@ function NumberField(props: NumberFieldProps) {
         value={props.value}
         onChange={props.onChange}
         placeholder={props.placeholder}
-        className={inputClass}
+        className={`${inputClass} num text-2xl`}
       />
     </div>
   )
