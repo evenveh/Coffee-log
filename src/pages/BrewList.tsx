@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
+import RoastSwatch from '../components/RoastSwatch'
 import { useBrews } from '../hooks/useBrews'
 import { useSignedUrls } from '../hooks/usePhotos'
-import { thumbPath } from '../lib/photos'
 import { drinkInfo } from '../lib/drinkTypes'
-import { formatDateTime, formatDuration, formatRatio, friendlyError } from '../lib/format'
-import { card } from '../lib/styles'
+import { formatDayHeading, formatDuration, formatRatio, formatTime, friendlyError, groupByDay } from '../lib/format'
+import { thumbPath } from '../lib/photos'
+import { listClass, pageTitle } from '../lib/styles'
 import type { BrewWithRelations } from '../lib/types'
 
 export default function BrewList() {
@@ -14,62 +15,73 @@ export default function BrewList() {
   const coverUrls = useSignedUrls(brews.data?.map(cover).filter((p) => p !== null) ?? [])
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">My brews</h2>
+    <section>
+      <h1 className={pageTitle}>My brews</h1>
 
-      {brews.isLoading && <p className="text-stone-500">Loading…</p>}
-      {brews.error && <p className="text-red-700">{friendlyError(brews.error)}</p>}
-      {brews.data?.length === 0 && <p className="text-stone-500">No brews yet. Pull a shot and log it!</p>}
+      {brews.isLoading && <p className="mt-4 text-muted">Loading brews…</p>}
+      {brews.error && <p className="mt-4 text-danger">Couldn't load your brews: {friendlyError(brews.error)}</p>}
+      {brews.data?.length === 0 && (
+        <p className="mt-4 text-muted">No brews yet. Tap <strong className="text-ink">Log brew</strong> after your next shot.</p>
+      )}
 
-      <ul className="flex flex-col gap-3">
-        {brews.data?.map((brew) => (
-          <li key={brew.id}>
-            <Link to={`/brews/${brew.id}`} className={`${card} flex items-center gap-3`}>
-              <Thumbnail url={coverUrls.data?.[cover(brew) ?? '']} />
-              <BrewSummary brew={brew} />
-              <ScoreBadge score={brew.rating_overall} />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {groupByDay(brews.data ?? []).map((group) => (
+        <section key={group.day} aria-label={formatDayHeading(group.day)}>
+          <h2 className="mt-6 mb-1 text-sm font-semibold text-muted">{formatDayHeading(group.day)}</h2>
+          <ul className={listClass}>
+            {group.items.map((brew) => (
+              <li key={brew.id}>
+                <BrewRow brew={brew} thumbUrl={coverUrls.data?.[cover(brew) ?? '']} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </section>
   )
 }
 
-function BrewSummary({ brew }: { brew: BrewWithRelations }) {
-  const inOut = [brew.dose_g, brew.yield_g]
-    .filter((g) => g !== null)
-    .map((g) => `${g} g`)
-    .join(' → ')
-  // e.g. "18 g → 36 g · 1:2.0 · 28 s". Missing values are simply left out.
-  const recipe = [inOut, formatRatio(brew.dose_g, brew.yield_g), brew.time_s !== null && formatDuration(brew.time_s)]
-    .filter(Boolean)
-    .join(' · ')
+function BrewRow({ brew, thumbUrl }: { brew: BrewWithRelations; thumbUrl?: string }) {
+  const ratio = formatRatio(brew.dose_g, brew.yield_g)
+  // "18 → 36" when both are known, otherwise whichever one we have.
+  const inOut = [brew.dose_g, brew.yield_g].filter((g) => g !== null).join(' → ')
 
   return (
-    <div className="min-w-0 flex-1">
-      <p className="truncate font-semibold">
-        {drinkInfo(brew.drink_type).label}
-        {brew.bean && <span className="font-normal text-stone-600"> · {brew.bean.name}</span>}
-      </p>
-      <p className="text-xs text-stone-500">{formatDateTime(brew.brewed_at)}</p>
-      {recipe && <p className="text-sm text-stone-600">{recipe}</p>}
-    </div>
+    <Link to={`/brews/${brew.id}`} className="flex items-stretch gap-3 py-3">
+      {/* Roast-colour edge: which bag this brew used, at a glance. */}
+      <RoastSwatch level={brew.bean?.roast_level} className="w-1.5 rounded-full" />
+
+      <div className="min-w-0 flex-1">
+        <p className="flex items-baseline gap-2">
+          <span className="font-semibold">{drinkInfo(brew.drink_type).label}</span>
+          <span className="text-sm text-muted">{formatTime(brew.brewed_at)}</span>
+        </p>
+        {brew.bean && <p className="truncate text-sm text-muted">{brew.bean.name}</p>}
+
+        {/* The recipe: the one bold element of the row. */}
+        {(inOut || brew.time_s !== null) && (
+          <p className="mt-1 flex items-baseline gap-3">
+            {inOut && <span className="num text-2xl leading-none">{inOut}</span>}
+            {brew.time_s !== null && <span className="num text-lg leading-none text-muted">{formatDuration(brew.time_s)}</span>}
+            {ratio && <span className="num text-lg leading-none text-crema-ink">{ratio}</span>}
+          </p>
+        )}
+      </div>
+
+      {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" className="size-14 shrink-0 self-center rounded-lg object-cover" />}
+
+      <Score value={brew.rating_overall} />
+    </Link>
   )
 }
 
-function Thumbnail({ url }: { url?: string }) {
+// The overall score as a condensed number with a thin crema bar showing how far it is to 10.
+function Score({ value }: { value: number }) {
   return (
-    <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-coffee-100 text-2xl">
-      {url ? <img src={url} alt="" loading="lazy" className="size-full object-cover" /> : <span aria-hidden>☕</span>}
-    </span>
-  )
-}
-
-function ScoreBadge({ score }: { score: number }) {
-  return (
-    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-coffee-800 text-lg font-bold text-coffee-50">
-      {score}
+    <span className="flex w-9 shrink-0 flex-col items-end justify-center gap-1" aria-label={`Score ${value} out of 10`}>
+      <span className="num text-3xl leading-none">{value}</span>
+      <span className="h-1 w-full rounded-full bg-line">
+        <span className="block h-1 rounded-full bg-crema" style={{ width: `${value * 10}%` }} />
+      </span>
     </span>
   )
 }

@@ -26,6 +26,34 @@ export function formatDateTime(iso: string): string {
   })
 }
 
+// e.g. "08:14"
+export function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+// "Today", "Yesterday", "Mon 20 Oct" (plus the year if it isn't this year).
+export function formatDayHeading(day: string): string {
+  const today = todayIso()
+  if (day === today) return 'Today'
+  if (daysSince(day) === 1) return 'Yesterday'
+  const [y, m, d] = day.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  const sameYear = today.slice(0, 4) === day.slice(0, 4)
+  return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: sameYear ? undefined : 'numeric' })
+}
+
+// Split an already-sorted list into consecutive groups per local calendar day.
+export function groupByDay<T extends { brewed_at: string }>(items: T[]): { day: string; items: T[] }[] {
+  const groups: { day: string; items: T[] }[] = []
+  for (const item of items) {
+    const day = new Date(item.brewed_at).toLocaleDateString('en-CA') // 'YYYY-MM-DD', local time
+    const last = groups[groups.length - 1]
+    if (last?.day === day) last.items.push(item)
+    else groups.push({ day, items: [item] })
+  }
+  return groups
+}
+
 // "1:2.0" from 18 g in and 36 g out. null if either is missing.
 export function formatRatio(dose: number | null, out: number | null): string | null {
   if (!dose || !out) return null

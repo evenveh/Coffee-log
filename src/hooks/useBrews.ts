@@ -6,7 +6,7 @@ import type { BrewInput, BrewWithRelations } from '../lib/types'
 // "*" = all brew columns. "bean:beans(...)" = follow bean_id into the beans table and
 // include those columns as brew.bean. Same for milk and grinder. One request, no extra lookups.
 const BREW_SELECT =
-  '*, bean:beans(id, name, roaster, roast_date), milk:milks(name), grinder:grinders(name), photos:brew_photos(id, storage_path, created_at)'
+  '*, bean:beans(id, name, roaster, roast_date, roast_level), milk:milks(name), grinder:grinders(name), photos:brew_photos(id, storage_path, created_at)'
 
 // Oldest photo first, so the first one you added is the "cover" shown in the list.
 function sortPhotos(brew: BrewWithRelations) {

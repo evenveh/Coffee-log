@@ -48,7 +48,7 @@ export type BrewInput = Omit<Brew, 'id' | 'user_id' | 'created_at'>
 
 // A brew plus the related rows Supabase joins in for us (see BREW_SELECT in useBrews).
 export type BrewWithRelations = Brew & {
-  bean: Pick<Bean, 'id' | 'name' | 'roaster' | 'roast_date'> | null
+  bean: Pick<Bean, 'id' | 'name' | 'roaster' | 'roast_date' | 'roast_level'> | null
   milk: { name: string } | null
   grinder: { name: string } | null
   photos: BrewPhoto[]
