@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local Claude Code skills (not committed)
+.claude/skills/
