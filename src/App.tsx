@@ -3,6 +3,8 @@ import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
 import BeanForm from './pages/BeanForm'
 import Beans from './pages/Beans'
+import BrewDetail from './pages/BrewDetail'
+import BrewForm from './pages/BrewForm'
 import BrewList from './pages/BrewList'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
@@ -21,6 +23,9 @@ export default function App() {
         }
       >
         <Route path="/" element={<BrewList />} />
+        <Route path="/brews/new" element={<BrewForm />} />
+        <Route path="/brews/:id" element={<BrewDetail />} />
+        <Route path="/brews/:id/edit" element={<BrewForm />} />
         <Route path="/beans" element={<Beans />} />
         <Route path="/beans/new" element={<BeanForm />} />
         <Route path="/beans/:id" element={<BeanForm />} />

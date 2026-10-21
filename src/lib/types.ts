@@ -1,4 +1,5 @@
 // TypeScript shapes of our database rows (must match supabase/migrations).
+import type { DrinkType } from './drinkTypes'
 
 export const ROAST_LEVELS = ['light', 'medium-light', 'medium', 'medium-dark', 'dark'] as const
 export type RoastLevel = (typeof ROAST_LEVELS)[number] // 'light' | 'medium-light' | ...
@@ -19,6 +20,38 @@ export type Bean = {
 
 // The fields a user fills in; the database sets the rest.
 export type BeanInput = Pick<Bean, 'roaster' | 'name' | 'origin' | 'process' | 'roast_level' | 'roast_date' | 'notes'>
+
+export type Brew = {
+  id: string
+  user_id: string
+  brewed_at: string // ISO timestamp
+  drink_type: DrinkType
+  bean_id: string | null
+  grinder_id: string | null
+  grind_setting: number | null
+  dose_g: number | null
+  yield_g: number | null // espresso: grams out. filter: grams of water.
+  time_s: number | null
+  water_temp_c: number | null
+  milk_id: string | null
+  rating_overall: number
+  sweetness: number | null
+  acidity: number | null
+  bitterness: number | null
+  body: number | null
+  latte_art_rating: number | null
+  notes: string | null
+  created_at: string
+}
+
+export type BrewInput = Omit<Brew, 'id' | 'user_id' | 'created_at'>
+
+// A brew plus the related rows Supabase joins in for us (see BREW_SELECT in useBrews).
+export type BrewWithRelations = Brew & {
+  bean: Pick<Bean, 'id' | 'name' | 'roaster' | 'roast_date'> | null
+  milk: { name: string } | null
+  grinder: { name: string } | null
+}
 
 // Milks and grinders share this shape.
 export type NamedTable = 'milks' | 'grinders'
