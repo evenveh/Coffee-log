@@ -259,7 +259,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
               ))}
             </select>
           </div>
-          <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="14" />
+          <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="14" keyboard={'text'} />
         </div>
 
         {info.milk && (
