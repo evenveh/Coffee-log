@@ -1,8 +1,11 @@
-import { Bean, ChevronLeft, List, Plus, Settings } from 'lucide-react'
+import { Bean, ChevronLeft, List, Plus, Settings, Users } from 'lucide-react'
 import { Link, matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 // Pages that show a form: the bottom nav hides and the form's StickyActions take its place.
 const FORM_ROUTES = ['/brews/new', '/brews/:id/edit', '/beans/new', '/beans/:id']
+
+// The bottom nav's tabs: these show the app name instead of a Back button.
+const TOP_LEVEL = ['/', '/beans', '/friends', '/settings']
 
 export default function Layout() {
   const location = useLocation()
@@ -10,7 +13,7 @@ export default function Layout() {
 
   // matchPath is a plain function (not a hook), so it's fine to call it in a loop.
   const isForm = FORM_ROUTES.some((pattern) => matchPath(pattern, location.pathname))
-  const isTopLevel = location.pathname === '/' || location.pathname === '/beans'
+  const isTopLevel = TOP_LEVEL.includes(location.pathname)
 
   function goBack() {
     // 'default' = the first page opened in this app session (e.g. from a link), so there is
@@ -30,11 +33,6 @@ export default function Layout() {
             <ChevronLeft size={24} aria-hidden />
             Back
           </button>
-        )}
-        {isTopLevel && (
-          <Link to="/settings" aria-label="Settings" className="flex size-11 items-center justify-center rounded-lg text-muted">
-            <Settings size={22} aria-hidden />
-          </Link>
         )}
       </header>
 
@@ -61,6 +59,11 @@ function BottomNav() {
           Brews
         </NavLink>
 
+        <NavLink to="/beans" className={tab}>
+          <Bean size={22} aria-hidden />
+          Beans
+        </NavLink>
+
         {/* The main action, centred where the thumb rests, and raised above the bar. */}
         <div className="flex flex-1 justify-center">
           <Link
@@ -74,9 +77,14 @@ function BottomNav() {
           </Link>
         </div>
 
-        <NavLink to="/beans" className={tab}>
-          <Bean size={22} aria-hidden />
-          Beans
+        <NavLink to="/friends" className={tab}>
+          <Users size={22} aria-hidden />
+          Friends
+        </NavLink>
+
+        <NavLink to="/settings" className={tab}>
+          <Settings size={22} aria-hidden />
+          Settings
         </NavLink>
       </div>
     </nav>

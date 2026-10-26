@@ -19,7 +19,7 @@ function report(label, status, body) {
   console.log(`${blocked ? 'OK  ' : 'LEAK'}  ${label.padEnd(22)} ${status}  ${body.slice(0, 70)}`)
 }
 
-for (const table of ['profiles', 'beans', 'milks', 'grinders', 'brews', 'brew_photos']) {
+for (const table of ['profiles', 'beans', 'milks', 'grinders', 'brews', 'brew_photos', 'groups', 'group_members']) {
   const res = await fetch(`${url}/rest/v1/${table}?select=*&limit=1`, { headers })
   report(`read ${table}`, res.status, await res.text())
 }
@@ -30,6 +30,13 @@ const insert = await fetch(`${url}/rest/v1/beans`, {
   body: JSON.stringify({ name: 'anonymous test bean' }),
 })
 report('insert bean', insert.status, await insert.text())
+
+const join = await fetch(`${url}/rest/v1/rpc/join_group`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify({ code: 'test' }),
+})
+report('join group', join.status, await join.text())
 
 const list = await fetch(`${url}/storage/v1/object/list/brew-photos`, {
   method: 'POST',

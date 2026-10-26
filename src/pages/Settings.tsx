@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import GroupSettings from '../components/GroupSettings'
 import InstallCard from '../components/InstallCard'
 import NamedListEditor from '../components/NamedListEditor'
 import { useUser } from '../hooks/useAuth'
@@ -55,6 +56,10 @@ export default function Settings() {
         )}
         {profileError && <p className="text-sm text-danger">{friendlyError(profileError)}</p>}
       </section>
+
+      <div className={section}>
+        <GroupSettings />
+      </div>
 
       <div className={section}>
         <p className="text-sm text-muted">

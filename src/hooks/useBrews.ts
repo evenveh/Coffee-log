@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { supabase } from '../lib/supabase'
 import type { BrewInput, BrewWithRelations } from '../lib/types'
+import { useUser } from './useAuth'
 
 // "*" = all brew columns. "bean:beans(...)" = follow bean_id into the beans table and
 // include those columns as brew.bean. Same for milk and grinder. One request, no extra lookups.
-const BREW_SELECT =
+export const BREW_SELECT =
   '*, bean:beans(id, name, roaster, roast_date, roast_level), milk:milks(name), grinder:grinders(name), photos:brew_photos(id, storage_path, created_at)'
 
 // Oldest photo first, so the first one you added is the "cover" shown in the list.
@@ -14,14 +15,17 @@ function sortPhotos(brew: BrewWithRelations) {
   return brew
 }
 
-// My brews, newest first. No user filter needed: RLS only ever returns your own rows.
+// My brews, newest first. The user filter matters: RLS also lets you read your
+// group's brews, and those must not mix into your own log.
 export function useBrews() {
+  const user = useUser()
   return useQuery({
     queryKey: ['brews'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('brews')
         .select(BREW_SELECT)
+        .eq('user_id', user.id)
         .order('brewed_at', { ascending: false })
       if (error) throw error
       return (data as BrewWithRelations[]).map(sortPhotos)
@@ -29,13 +33,20 @@ export function useBrews() {
   })
 }
 
-// One brew. Cached as ['brews', id], so invalidating ['brews'] refreshes this too.
+// One of my brews. Cached as ['brews', id], so invalidating ['brews'] refreshes this too.
+// Also filtered by user, so a friend's brew id shows "doesn't exist" instead of an edit form.
 export function useBrew(id: string | undefined) {
+  const user = useUser()
   return useQuery({
     queryKey: ['brews', id],
     enabled: !!id, // don't run until we have an id
     queryFn: async () => {
-      const { data, error } = await supabase.from('brews').select(BREW_SELECT).eq('id', id!).maybeSingle()
+      const { data, error } = await supabase
+        .from('brews')
+        .select(BREW_SELECT)
+        .eq('id', id!)
+        .eq('user_id', user.id)
+        .maybeSingle()
       if (error) throw error
       return data ? sortPhotos(data as BrewWithRelations) : null // null = not found (or not yours)
     },

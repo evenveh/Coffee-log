@@ -36,6 +36,9 @@ export function useUpdateDisplayName() {
         .eq('id', user.id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['group'] }) // the group's member list shows names too
+    },
   })
 }

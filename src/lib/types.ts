@@ -60,6 +60,18 @@ export type BrewPhoto = {
   created_at: string
 }
 
+// A group of friends who see each other's brews (see 0002_groups.sql).
+export type Group = {
+  id: string
+  name: string
+  invite_code: string
+}
+
+export type GroupMember = {
+  id: string // user id
+  display_name: string | null
+}
+
 // Milks and grinders share this shape.
 export type NamedTable = 'milks' | 'grinders'
 export type NamedItem = {
