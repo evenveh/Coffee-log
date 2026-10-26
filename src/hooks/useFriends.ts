@@ -5,7 +5,8 @@ import { useUser } from './useAuth'
 import { BREW_SELECT, sortPhotos } from './useBrews'
 
 // Everything that changes when you create, join or leave a group.
-const GROUP_KEYS = [['group'], ['friend-brews']]
+// The lists change too: they belong to the group, and joining moves your own rows into it.
+const GROUP_KEYS = [['group'], ['friend-brews'], ['beans'], ['milks'], ['grinders'], ['brewers']]
 
 // My group, or null if I'm not in one.
 export function useMyGroup() {

@@ -45,7 +45,7 @@ function NoGroup() {
   return (
     <div className="flex flex-col gap-6">
       <p className="-mt-2 text-sm text-muted">
-        In a group, you see each other's brews and photos here. Your own log stays separate.
+        In a group, you see each other's brews and photos here, and share one list of beans, milks, grinders and brewers. Your own log stays separate.
       </p>
 
       <form onSubmit={submitJoin} className="flex flex-col gap-3">

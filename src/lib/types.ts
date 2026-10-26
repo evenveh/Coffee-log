@@ -15,7 +15,9 @@ export type Bean = {
   notes: string | null
   archived: boolean
   created_by: string | null
+  group_id: string | null // null = private to created_by
   created_at: string
+  in_my_list: boolean // false = only readable because one of the brews I can see uses it
 }
 
 // The fields a user fills in; the database sets the rest.
@@ -74,10 +76,11 @@ export type GroupMember = {
   display_name: string | null
 }
 
-// Milks, grinders and brewers share this shape.
+// Milks, grinders and brewers share this shape (see 0006_group_libraries.sql).
 export type NamedTable = 'milks' | 'grinders' | 'brewers'
 export type NamedItem = {
   id: string
   name: string
   archived: boolean
+  in_my_list: boolean // see Bean
 }

@@ -8,7 +8,7 @@ export function useNamedList(table: NamedTable) {
   return useQuery({
     queryKey: [table],
     queryFn: async () => {
-      const { data, error } = await supabase.from(table).select('id, name, archived').order('name')
+      const { data, error } = await supabase.from(table).select('id, name, archived, in_my_list').order('name')
       if (error) throw error
       return data as NamedItem[]
     },

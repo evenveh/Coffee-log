@@ -19,7 +19,7 @@ export default function GroupSettings() {
   }
 
   function confirmLeave() {
-    if (!window.confirm("Leave this group? You'll stop seeing each other's brews.")) return
+    if (!window.confirm("Leave this group? You'll stop seeing each other's brews, and the beans and lists stay with the group.")) return
     leave.mutate()
   }
 

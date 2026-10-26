@@ -10,7 +10,7 @@ type Props = {
   placeholder: string
 }
 
-// Add/archive editor for a simple shared list. Used for milks, grinders and brewers.
+// Add/archive editor for one of my group's simple lists. Used for milks, grinders and brewers.
 export default function NamedListEditor({ table, title, placeholder }: Props) {
   const items = useNamedList(table)
   const add = useAddNamedItem(table)
@@ -22,8 +22,9 @@ export default function NamedListEditor({ table, title, placeholder }: Props) {
     add.mutate(name.trim(), { onSuccess: () => setName('') })
   }
 
+  // Only my list (not rows I can read just because a brew uses them).
   // Active items first, archived ones after (the list is already sorted by name).
-  const sorted = [...(items.data ?? [])].sort((a, b) => Number(a.archived) - Number(b.archived))
+  const sorted = (items.data ?? []).filter((i) => i.in_my_list).sort((a, b) => Number(a.archived) - Number(b.archived))
   const error = items.error ?? add.error ?? setArchived.error
 
   return (
@@ -31,7 +32,7 @@ export default function NamedListEditor({ table, title, placeholder }: Props) {
       <h2 className={sectionTitle}>{title}</h2>
 
       {items.isLoading && <p className="text-sm text-muted">Loading…</p>}
-      {items.data?.length === 0 && <p className="text-sm text-muted">The list is empty.</p>}
+      {items.data && sorted.length === 0 && <p className="text-sm text-muted">The list is empty.</p>}
 
       {sorted.length > 0 && (
         <ul className={listClass}>

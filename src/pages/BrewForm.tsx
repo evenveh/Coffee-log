@@ -136,9 +136,10 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   const selectedBean = beans.data?.find((b) => b.id === form.bean_id)
   const daysOff = selectedBean?.roast_date ? daysSince(selectedBean.roast_date, new Date(form.brewed_at)) : null
 
-  // Hide archived items, except the one already chosen (when editing an old brew).
-  const active = <T extends { id: string; archived: boolean }>(items: T[] | undefined, chosen: string) =>
-    (items ?? []).filter((i) => !i.archived || i.id === chosen)
+  // Active items from my list, plus the one already chosen (when editing an old brew,
+  // it may be archived, or from a group I've left).
+  const active = <T extends { id: string; archived: boolean; in_my_list: boolean }>(items: T[] | undefined, chosen: string) =>
+    (items ?? []).filter((i) => (i.in_my_list && !i.archived) || i.id === chosen)
 
   function submit(e: FormEvent) {
     e.preventDefault()

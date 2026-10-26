@@ -17,6 +17,8 @@ export default function BeanForm() {
 
   const bean = beans.data?.find((b) => b.id === id)
   if (!bean) return <p className="text-muted">This bean doesn't exist.</p>
+  // Readable because a brew uses it, but it's another group's (or a former group's), so RLS blocks edits.
+  if (!bean.in_my_list) return <p className="text-muted">This bean belongs to another group, so you can't edit it.</p>
 
   // Render the form only once the bean is loaded, so its state starts with the right values.
   return <BeanFormFields key={bean.id} initial={bean} />

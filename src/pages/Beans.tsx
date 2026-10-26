@@ -2,16 +2,20 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import RoastSwatch from '../components/RoastSwatch'
 import { useBeans } from '../hooks/useBeans'
+import { useMyGroup } from '../hooks/useFriends'
 import { daysSince, friendlyError } from '../lib/format'
 import { listClass, pageTitle, primaryButton } from '../lib/styles'
 import type { Bean } from '../lib/types'
 
 export default function Beans() {
   const beans = useBeans()
+  const group = useMyGroup()
   const [showArchived, setShowArchived] = useState(false)
 
-  const visible = beans.data?.filter((b) => showArchived || !b.archived) ?? []
-  const archivedCount = beans.data?.filter((b) => b.archived).length ?? 0
+  // Leave out beans I can only read because one of my (or my group's) brews uses them.
+  const mine = beans.data?.filter((b) => b.in_my_list) ?? []
+  const visible = mine.filter((b) => showArchived || !b.archived)
+  const archivedCount = mine.filter((b) => b.archived).length
 
   return (
     <section className="flex flex-col gap-4">
@@ -19,7 +23,11 @@ export default function Beans() {
         <h1 className={pageTitle}>Beans</h1>
         <Link to="/beans/new" className={primaryButton}>Add bean</Link>
       </div>
-      <p className="-mt-2 text-sm text-muted">Shared with everyone using the app.</p>
+      {group.data !== undefined && (
+        <p className="-mt-2 text-sm text-muted">
+          {group.data ? `Shared with ${group.data.name}.` : "Only you see these. Join a group to share them."}
+        </p>
+      )}
 
       {beans.isLoading && <p className="text-muted">Loading beans…</p>}
       {beans.error && <p className="text-danger">Couldn't load the beans: {friendlyError(beans.error)}</p>}

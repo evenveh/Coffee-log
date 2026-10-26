@@ -2,7 +2,7 @@
 
 A small, installable web app for logging and rating home espresso and filter brews.
 
-- **Shared library:** beans (with roast date), milks, grinders and brewers, visible to all users
+- **Group library:** beans (with roast date), milks, grinders and brewers, shared within your group
 - **Your own brew log:** drink type, grind, dose / yield / time, water temperature, milk
 - **Groups:** join friends with an invite code and see their brews in a separate Friends tab
 - **Ratings:** overall 1–10, optional sweetness / acidity / bitterness / body, latte art for milk drinks
@@ -38,7 +38,7 @@ The schema, Row Level Security policies and storage bucket are in
 [`supabase/migrations/`](supabase/migrations/). For a new Supabase project, run the files in order
 in the dashboard's SQL Editor.
 
-Security model: everything requires sign-in. Beans, milks, grinders and brewers are shared. Brews and their
+Security model: everything requires sign-in. Beans, milks, grinders and brewers are shared within a group (private to you without one). Brews and their
 photos are visible to their owner and to members of the owner's group, but only the owner can
 change them. All of this is enforced by RLS in the database, not just the UI.
 `node --env-file=.env.local scripts/check-anon-access.mjs` verifies that anonymous visitors can't
