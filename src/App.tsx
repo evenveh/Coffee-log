@@ -9,6 +9,7 @@ import BrewList from './pages/BrewList'
 import Friends from './pages/Friends'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
+import FriendBrew from './pages/FriendBrew'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/beans/new" element={<BeanForm />} />
         <Route path="/beans/:id" element={<BeanForm />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/friends/:id" element={<FriendBrew />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
 

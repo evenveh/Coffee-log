@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { BrewWithRelations, Group, GroupMember } from '../lib/types'
 import { useUser } from './useAuth'
-import { BREW_SELECT } from './useBrews'
+import { BREW_SELECT, sortPhotos } from './useBrews'
 
 // Everything that changes when you create, join or leave a group.
 const GROUP_KEYS = [['group'], ['friend-brews']]
@@ -55,7 +55,28 @@ export function useFriendBrews() {
         .order('brewed_at', { ascending: false })
         .limit(100)
       if (error) throw error
-      return data as BrewWithRelations[]
+      return (data as BrewWithRelations[]).map(sortPhotos)
+    },
+  })
+}
+
+// One brew from my group. Cached as ['friend-brews', id], so leaving or joining a group
+// (which invalidates ['friend-brews']) refreshes this too, but saving my own brews doesn't.
+// My own brews are excluded, so their ids show "doesn't exist" here, like friends' ids do on /brews/:id.
+export function useFriendBrew(id: string | undefined) {
+  const user = useUser()
+  return useQuery({
+    queryKey: ['friend-brews', id],
+    enabled: !!id, // don't run until we have an id
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('brews')
+        .select(BREW_SELECT)
+        .eq('id', id!)
+        .neq('user_id', user.id)
+        .maybeSingle()
+      if (error) throw error
+      return data ? sortPhotos(data as BrewWithRelations) : null // null = not found, or not in my group
     },
   })
 }

@@ -8,9 +8,10 @@ import type { BrewPhoto } from '../lib/types'
 type Props = {
   brewId: string
   photos: BrewPhoto[]
+  readOnly?: boolean // true = only view: no adding or deleting (a friend's brew)
 }
 
-export default function PhotoGallery({ brewId, photos }: Props) {
+export default function PhotoGallery({ brewId, photos, readOnly }: Props) {
   const upload = useUploadPhotos()
   const remove = useDeletePhoto()
   const urls = useSignedUrls(photos.flatMap((p) => [thumbPath(p.storage_path), p.storage_path]))
@@ -34,10 +35,12 @@ export default function PhotoGallery({ brewId, photos }: Props) {
       <div className="flex items-center justify-between">
         <h2 className={sectionTitle}>Photos</h2>
         {/* The label is the visible button; clicking it opens the hidden file input. */}
-        <label className={`${secondaryButton} cursor-pointer text-sm ${upload.isPending ? 'pointer-events-none opacity-50' : ''}`}>
-          {upload.isPending ? 'Uploading…' : 'Add photos'}
-          <input type="file" accept="image/*" multiple onChange={onPick} className="hidden" />
-        </label>
+        {!readOnly && (
+          <label className={`${secondaryButton} cursor-pointer text-sm ${upload.isPending ? 'pointer-events-none opacity-50' : ''}`}>
+            {upload.isPending ? 'Uploading…' : 'Add photos'}
+            <input type="file" accept="image/*" multiple onChange={onPick} className="hidden" />
+          </label>
+        )}
       </div>
 
       {photos.length === 0 && !upload.isPending && <p className="text-sm text-muted">No photos yet.</p>}
@@ -67,10 +70,12 @@ export default function PhotoGallery({ brewId, photos }: Props) {
           />
           {/* stopPropagation: clicks on the buttons shouldn't also count as "click the backdrop" */}
           <div className="flex items-center justify-between p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+            {!readOnly && 
             <button onClick={deleteOpen} disabled={remove.isPending} className="min-h-11 text-sm text-red-300 underline underline-offset-2">
               {remove.isPending ? 'Deleting…' : 'Delete photo'}
             </button>
-            <button onClick={() => setOpen(null)} className="min-h-11 rounded-lg bg-white px-4 font-medium text-black">Close</button>
+            }
+            <button onClick={() => setOpen(null)} className="ml-auto min-h-11 rounded-lg bg-white px-4 font-medium text-black">Close</button>
           </div>
         </div>
       )}

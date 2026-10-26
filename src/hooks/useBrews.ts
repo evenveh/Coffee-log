@@ -10,7 +10,7 @@ export const BREW_SELECT =
   '*, bean:beans(id, name, roaster, roast_date, roast_level), milk:milks(name), grinder:grinders(name), photos:brew_photos(id, storage_path, created_at)'
 
 // Oldest photo first, so the first one you added is the "cover" shown in the list.
-function sortPhotos(brew: BrewWithRelations) {
+export function sortPhotos(brew: BrewWithRelations) {
   brew.photos.sort((a, b) => a.created_at.localeCompare(b.created_at))
   return brew
 }
