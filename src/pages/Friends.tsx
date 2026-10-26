@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import RoastSwatch from '../components/RoastSwatch'
 import Score from '../components/Score'
 import { useCreateGroup, useFriendBrews, useGroupMembers, useJoinGroup, useMyGroup } from '../hooks/useFriends'
+import { useSignedUrls } from '../hooks/usePhotos'
 import { drinkInfo } from '../lib/drinkTypes'
 import { formatDayHeading, formatDuration, formatRatio, formatTime, friendlyError, groupByDay } from '../lib/format'
+import { thumbPath } from '../lib/photos'
 import { inputClass, labelClass, listClass, pageTitle, primaryButton, secondaryButton, sectionTitle } from '../lib/styles'
 import type { BrewWithRelations, Group } from '../lib/types'
 
@@ -43,7 +45,7 @@ function NoGroup() {
   return (
     <div className="flex flex-col gap-6">
       <p className="-mt-2 text-sm text-muted">
-        In a group, you see each other's brews here. Your own log stays separate, and photos stay private.
+        In a group, you see each other's brews and photos here. Your own log stays separate.
       </p>
 
       <form onSubmit={submitJoin} className="flex flex-col gap-3">
@@ -87,6 +89,9 @@ function Feed({ group }: { group: Group }) {
   const brews = useFriendBrews()
   const members = useGroupMembers(group.id)
   const nameOf = (userId: string) => members.data?.find((m) => m.id === userId)?.display_name || 'A friend'
+  // Cover = first photo of each brew. Signed in one batch request, as in My brews.
+  const cover = (brew: BrewWithRelations) => (brew.photos[0] ? thumbPath(brew.photos[0].storage_path) : null)
+  const coverUrls = useSignedUrls(brews.data?.map(cover).filter((p) => p !== null) ?? [])
 
   return (
     <>
@@ -106,7 +111,7 @@ function Feed({ group }: { group: Group }) {
           <ul className={listClass}>
             {day.items.map((brew) => (
               <li key={brew.id}>
-                <FriendBrewRow brew={brew} name={nameOf(brew.user_id)} />
+                <FriendBrewRow brew={brew} name={nameOf(brew.user_id)} thumbUrl={coverUrls.data?.[cover(brew) ?? '']} />
               </li>
             ))}
           </ul>
@@ -116,16 +121,16 @@ function Feed({ group }: { group: Group }) {
   )
 }
 
-// Like a row in My brews, but not a link (there's no page for a friend's brew),
-// with the friend's name on top and their notes underneath.
-function FriendBrewRow({ brew, name }: { brew: BrewWithRelations; name: string }) {
+// Like a row in My brews, with the friend's name on top and their notes underneath.
+// Opens the brew's read-only page (FriendBrew).
+function FriendBrewRow({ brew, name, thumbUrl }: { brew: BrewWithRelations; name: string; thumbUrl?: string }) {
   const ratio = formatRatio(brew.dose_g, brew.yield_g)
   const inOut = [brew.dose_g, brew.yield_g].filter((g) => g !== null).join(' → ')
   const drink = drinkInfo(brew.drink_type).label
   const what = brew.bean ? `${drink} with ${brew.bean.name}` : drink
 
   return (
-    <div className="flex items-stretch gap-3 py-3">
+    <Link to={`/friends/${brew.id}`} className="flex items-stretch gap-3 py-3">
       <RoastSwatch level={brew.bean?.roast_level} className="w-1.5 rounded-full" />
 
       <div className="min-w-0 flex-1">
@@ -146,7 +151,9 @@ function FriendBrewRow({ brew, name }: { brew: BrewWithRelations; name: string }
         {brew.notes && <p className="mt-1 line-clamp-3 text-sm whitespace-pre-wrap text-muted">{brew.notes}</p>}
       </div>
 
+      {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" className="size-14 shrink-0 self-center rounded-lg object-cover" />}
+
       <Score value={brew.rating_overall} />
-    </div>
+    </Link>
   )
 }

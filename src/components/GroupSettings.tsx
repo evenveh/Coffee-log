@@ -39,7 +39,7 @@ export default function GroupSettings() {
       {group.data && (
         <>
           <p className="text-sm text-muted">
-            You're in <strong className="text-ink">{group.data.name}</strong>. Members see each other's brews, but not photos.
+            You're in <strong className="text-ink">{group.data.name}</strong>. Members see each other's brews and photos, but can't change them.
           </p>
 
           <div className="flex items-end justify-between gap-3">

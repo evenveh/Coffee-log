@@ -38,9 +38,9 @@ The schema, Row Level Security policies and storage bucket are in
 [`supabase/migrations/`](supabase/migrations/). For a new Supabase project, run the files in order
 in the dashboard's SQL Editor.
 
-Security model: everything requires sign-in. Beans, milks and grinders are shared. Brews are visible
-to their owner and to members of the owner's group, but only the owner can change them. Photos are
-only visible to their owner. All of this is enforced by RLS in the database, not just the UI.
+Security model: everything requires sign-in. Beans, milks and grinders are shared. Brews and their
+photos are visible to their owner and to members of the owner's group, but only the owner can
+change them. All of this is enforced by RLS in the database, not just the UI.
 `node --env-file=.env.local scripts/check-anon-access.mjs` verifies that anonymous visitors can't
 read or write anything.
 

@@ -7,6 +7,13 @@ const FORM_ROUTES = ['/brews/new', '/brews/:id/edit', '/beans/new', '/beans/:id'
 // The bottom nav's tabs: these show the app name instead of a Back button.
 const TOP_LEVEL = ['/', '/beans', '/friends', '/settings']
 
+// The main page of the section a path belongs to, e.g. /friends/abc -> /friends.
+function sectionHome(pathname: string): string {
+  if (pathname.startsWith('/beans')) return '/beans'
+  if (pathname.startsWith('/friends')) return '/friends'
+  return '/'
+}
+
 export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -18,7 +25,7 @@ export default function Layout() {
   function goBack() {
     // 'default' = the first page opened in this app session (e.g. from a link), so there is
     // no in-app history to go back to. Go to the section's main page instead.
-    if (location.key === 'default') navigate(location.pathname.startsWith('/beans') ? '/beans' : '/')
+    if (location.key === 'default') navigate(sectionHome(location.pathname))
     else navigate(-1)
   }
 

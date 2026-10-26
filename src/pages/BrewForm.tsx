@@ -6,6 +6,7 @@ import ScoreInput from '../components/ScoreInput'
 import StickyActions from '../components/StickyActions'
 import { useBeans } from '../hooks/useBeans'
 import { useBrew, useBrews, useSaveBrew } from '../hooks/useBrews'
+import { useFriendBrew } from '../hooks/useFriends'
 import { useNamedList } from '../hooks/useNamedList'
 import { useUploadPhotos } from '../hooks/usePhotos'
 import { DRINK_TYPES, drinkInfo, type DrinkType } from '../lib/drinkTypes'
@@ -20,6 +21,8 @@ export default function BrewForm() {
   const fromId = searchParams.get('from')
   const brews = useBrews()
   const existing = useBrew(id)
+  // "Brew again" on a friend's brew: their brew isn't in my own list, so look it up separately.
+  const friendBrew = useFriendBrew(fromId ?? undefined)
 
   if (id) {
     if (existing.isLoading) return <p className="text-muted">Loading…</p>
@@ -27,8 +30,8 @@ export default function BrewForm() {
     return <BrewFormFields key={id} initial={existing.data} />
   }
 
-  if (fromId && brews.isLoading) return <p className="text-muted">Loading…</p>
-  const copyFrom = brews.data?.find((b) => b.id === fromId)
+  if (fromId && (brews.isLoading || friendBrew.isLoading)) return <p className="text-muted">Loading…</p>
+  const copyFrom = brews.data?.find((b) => b.id === fromId) ?? friendBrew.data ?? undefined
   return <BrewFormFields key={fromId ?? 'new'} copyFrom={copyFrom} lastBrew={brews.data?.[0]} />
 }
 
