@@ -44,6 +44,7 @@ type FormState = {
   bean_id: string
   grinder_id: string
   grind_setting: string
+  brewer_id: string
   dose_g: string
   yield_g: string
   time_s: string
@@ -67,6 +68,7 @@ function recipeFields(brew?: Brew) {
     bean_id: brew?.bean_id ?? '',
     grinder_id: brew?.grinder_id ?? '',
     grind_setting: str(brew?.grind_setting),
+    brewer_id: brew?.brewer_id ?? '',
     dose_g: str(brew?.dose_g),
     yield_g: str(brew?.yield_g),
     time_s: str(brew?.time_s),
@@ -109,6 +111,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   const save = useSaveBrew()
   const beans = useBeans()
   const grinders = useNamedList('grinders')
+  const brewers = useNamedList('brewers')
   const milks = useNamedList('milks')
   const [formError, setFormError] = useState<string | null>(null)
   const upload = useUploadPhotos()
@@ -161,6 +164,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
         bean_id: form.bean_id || null,
         grinder_id: form.grinder_id || null,
         ...numbers,
+        // Same idea for the brewer: only filter brews have one.
+        brewer_id: isFilter ? form.brewer_id || null : null,
         // Milk fields only count for milk drinks, even if something was picked earlier.
         milk_id: info.milk ? form.milk_id || null : null,
         latte_art_rating: info.milk ? form.latte_art_rating : null,
@@ -264,6 +269,18 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
           </div>
           <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="14" keyboard={'text'} />
         </div>
+
+        {isFilter && (
+          <div>
+            <label className={labelClass} htmlFor="brewer_id">Brewer</label>
+            <select id="brewer_id" value={form.brewer_id} onChange={text('brewer_id')} className={inputClass}>
+              <option value="">None</option>
+              {active(brewers.data, form.brewer_id).map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {info.milk && (
           <div>

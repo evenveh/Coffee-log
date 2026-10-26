@@ -28,6 +28,7 @@ export type Brew = {
   drink_type: DrinkType
   bean_id: string | null
   grinder_id: string | null
+  brewer_id: string | null // filter brews only
   grind_setting: number | null
   dose_g: number | null
   yield_g: number | null // espresso: grams out. filter: grams of water.
@@ -51,6 +52,7 @@ export type BrewWithRelations = Brew & {
   bean: Pick<Bean, 'id' | 'name' | 'roaster' | 'roast_date' | 'roast_level'> | null
   milk: { name: string } | null
   grinder: { name: string } | null
+  brewer: { name: string } | null
   photos: BrewPhoto[]
 }
 
@@ -72,8 +74,8 @@ export type GroupMember = {
   display_name: string | null
 }
 
-// Milks and grinders share this shape.
-export type NamedTable = 'milks' | 'grinders'
+// Milks, grinders and brewers share this shape.
+export type NamedTable = 'milks' | 'grinders' | 'brewers'
 export type NamedItem = {
   id: string
   name: string

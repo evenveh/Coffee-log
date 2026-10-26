@@ -34,6 +34,7 @@ export default function BrewView({ brew: b, by, readOnly }: Props) {
   const equipment = [
     b.grinder && (b.grind_setting !== null ? `${b.grinder.name} at ${b.grind_setting}` : b.grinder.name),
     !b.grinder && b.grind_setting !== null && `Grind ${b.grind_setting}`,
+    b.brewer && b.brewer.name,
     b.milk && `${b.milk.name} milk`,
   ].filter(Boolean) as string[]
 

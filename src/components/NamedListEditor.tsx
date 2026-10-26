@@ -10,7 +10,7 @@ type Props = {
   placeholder: string
 }
 
-// Add/archive editor for a simple shared list. Used for both milks and grinders.
+// Add/archive editor for a simple shared list. Used for milks, grinders and brewers.
 export default function NamedListEditor({ table, title, placeholder }: Props) {
   const items = useNamedList(table)
   const add = useAddNamedItem(table)

@@ -63,13 +63,17 @@ export default function Settings() {
 
       <div className={section}>
         <p className="text-sm text-muted">
-          Milks and grinders are shared with everyone using the app. Archive one instead of deleting it, so older brews keep their details.
+          Milks, grinders and brewers are shared with everyone using the app. Archive one instead of deleting it, so older brews keep their details.
         </p>
         <NamedListEditor table="milks" title="Milks" placeholder="Barista oat" />
       </div>
 
       <div className={section}>
         <NamedListEditor table="grinders" title="Grinders" placeholder="Niche Zero" />
+      </div>
+
+      <div className={section}>
+        <NamedListEditor table="brewers" title="Brewers" placeholder="Kalita Wave" />
       </div>
 
       <div className={section}>

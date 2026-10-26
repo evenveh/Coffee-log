@@ -28,7 +28,7 @@ Vite · React 19 · TypeScript · Tailwind v4 · React Router 7 · TanStack Quer
 - `scripts/check-anon-access.mjs`: verifies anonymous visitors can't read or write anything. Run it after policy changes (it needs `.env.local`, so ask the user to run it).
 
 ## Data model and privacy
-- Beans, milks and grinders are shared with every signed-in user (archive, never delete).
+- Beans, milks, grinders and brewers are shared with every signed-in user (archive, never delete).
 - Brews belong to one user. Members of that user's group (`groups`, `group_members`, one group per user) can read them (Friends tab, `/friends/:id`) but can't change them. The same goes for photos: group members can view them, only the owner can add or delete them.
 - RLS returns group members' brews too, so anything showing *my* brews must filter `.eq('user_id', user.id)`, as `useBrews` and `useBrew` do. Friends' brews come from `useFriendBrews` under a separate query key.
 - RLS is the security boundary; `RequireAuth` and UI checks are only UX. Details in `.claude/rules/database.md`.

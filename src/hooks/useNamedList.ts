@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { NamedItem, NamedTable } from '../lib/types'
 
-// One set of hooks for both milks and grinders: the table name is a parameter.
+// One set of hooks for milks, grinders and brewers: the table name is a parameter.
 
 export function useNamedList(table: NamedTable) {
   return useQuery({
