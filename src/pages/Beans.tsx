@@ -23,12 +23,6 @@ export default function Beans() {
         <h1 className={pageTitle}>Beans</h1>
         <Link to="/beans/new" className={primaryButton}>Add bean</Link>
       </div>
-      {group.data !== undefined && (
-        <p className="-mt-2 text-sm text-muted">
-          {group.data ? `Shared with ${group.data.name}.` : "Only you see these. Join a group to share them."}
-        </p>
-      )}
-
       {beans.isLoading && <p className="text-muted">Loading beans…</p>}
       {beans.error && <p className="text-danger">Couldn't load the beans: {friendlyError(beans.error)}</p>}
       {beans.data && visible.length === 0 && (
