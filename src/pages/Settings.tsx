@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import GroupSettings from '../components/GroupSettings'
 import InstallCard from '../components/InstallCard'
@@ -16,7 +15,6 @@ export default function Settings() {
   const user = useUser()
   const profile = useProfile()
   const updateName = useUpdateDisplayName()
-  const queryClient = useQueryClient()
 
   // null = "not edited yet", so the input shows the saved name until you type.
   const [name, setName] = useState<string | null>(null)
@@ -27,9 +25,9 @@ export default function Settings() {
     updateName.mutate(shownName.trim(), { onSuccess: () => setName(null) })
   }
 
+  // AuthProvider clears the cached data when the sign-out goes through.
   async function signOut() {
     await supabase.auth.signOut()
-    queryClient.clear() // forget cached data so the next user on this device sees nothing of yours
   }
 
   const profileError = profile.error ?? updateName.error
