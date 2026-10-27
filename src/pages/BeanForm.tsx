@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import RoastSwatch from '../components/RoastSwatch'
+import RoastBean from '../components/RoastBean'
 import StickyActions from '../components/StickyActions'
 import { useBeans, useSaveBean, useSetBeanArchived } from '../hooks/useBeans'
 import { emptyToNull, friendlyError, todayIso } from '../lib/format'
@@ -102,7 +102,7 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
         </div>
       </section>
 
-      {/* Roast level as swatch chips: you pick the colour you'll see everywhere else. */}
+      {/* Roast level as bean chips: you pick the colour you'll see everywhere else. */}
       <fieldset className="flex flex-col gap-2 border-t border-line pt-5">
         <legend className={`${sectionTitle} mb-2`}>Roast</legend>
         <div className="flex flex-wrap gap-2">
@@ -117,7 +117,7 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
                 className="peer sr-only"
               />
               <span className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface pr-4 pl-1.5 text-sm peer-checked:border-ink peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-crema">
-                <RoastSwatch level={(level || null) as RoastLevel | null} className="size-8 rounded-full" />
+                <RoastBean level={(level || null) as RoastLevel | null} className="size-8" />
                 {level || 'Unknown'}
               </span>
             </label>
