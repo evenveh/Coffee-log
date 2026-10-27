@@ -29,4 +29,4 @@ dist-ssr
 !.env.example
 
 # Local Claude Code skills (not committed)
-.claude/skills/
+.claude/Skills/
