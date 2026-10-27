@@ -4,7 +4,7 @@
 export type DrinkType =
   | 'espresso' | 'ristretto' | 'lungo' | 'americano'
   | 'cortado' | 'cappuccino' | 'flat_white' | 'latte'
-  | 'pour_over' | 'filter_machine' | 'aeropress' | 'french_press' | 'other'
+  | 'mocca' | 'pour_over' | 'filter_machine' | 'aeropress' | 'french_press' | 'other'
 
 type DrinkInfo = {
   value: DrinkType
@@ -22,6 +22,7 @@ export const DRINK_TYPES: DrinkInfo[] = [
   { value: 'cappuccino', label: 'Cappuccino', category: 'espresso', milk: true },
   { value: 'flat_white', label: 'Flat white', category: 'espresso', milk: true },
   { value: 'latte', label: 'Latte', category: 'espresso', milk: true },
+  { value: 'mocca', label: 'Mocca', category: 'espresso', milk: true },
   { value: 'pour_over', label: 'Pour over', category: 'filter', milk: false },
   { value: 'filter_machine', label: 'Filter machine', category: 'filter', milk: false },
   { value: 'aeropress', label: 'AeroPress', category: 'filter', milk: false },
