@@ -37,9 +37,13 @@ export function useBrews() {
 // Also filtered by user, so a friend's brew id shows "doesn't exist" instead of an edit form.
 export function useBrew(id: string | undefined) {
   const user = useUser()
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: ['brews', id],
     enabled: !!id, // don't run until we have an id
+    // Coming from the list, we already have this brew: show it right away while the
+    // real fetch runs. Placeholder data isn't saved in the cache; the fetch result replaces it.
+    placeholderData: () => queryClient.getQueryData<BrewWithRelations[]>(['brews'])?.find((b) => b.id === id),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('brews')

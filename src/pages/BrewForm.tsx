@@ -25,7 +25,8 @@ export default function BrewForm() {
   const friendBrew = useFriendBrew(fromId ?? undefined)
 
   if (id) {
-    if (existing.isLoading) return <p className="text-muted">Loading…</p>
+    // The form copies its data into state once, so wait for the real brew, not the list's copy.
+    if (existing.isLoading || existing.isPlaceholderData) return <p className="text-muted">Loading…</p>
     if (!existing.data) return <p className="text-muted">This brew doesn't exist, or it was deleted.</p>
     return <BrewFormFields key={id} initial={existing.data} />
   }
