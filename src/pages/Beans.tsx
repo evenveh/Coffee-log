@@ -2,14 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import RoastSwatch from '../components/RoastSwatch'
 import { useBeans } from '../hooks/useBeans'
-import { useMyGroup } from '../hooks/useFriends'
 import { daysSince, friendlyError } from '../lib/format'
 import { listClass, pageTitle, primaryButton } from '../lib/styles'
 import type { Bean } from '../lib/types'
 
 export default function Beans() {
   const beans = useBeans()
-  const group = useMyGroup()
   const [showArchived, setShowArchived] = useState(false)
 
   // Leave out beans I can only read because one of my (or my group's) brews uses them.
