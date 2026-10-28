@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import RoastSwatch from '../components/RoastSwatch'
+import BeanThumb from '../components/BeanThumb'
 import { useBeans } from '../hooks/useBeans'
+import { useSignedUrls } from '../hooks/usePhotos'
 import { daysSince, friendlyError } from '../lib/format'
+import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { listClass, pageTitle, primaryButton } from '../lib/styles'
 import type { Bean } from '../lib/types'
 
@@ -14,6 +16,10 @@ export default function Beans() {
   const mine = beans.data?.filter((b) => b.in_my_list) ?? []
   const visible = mine.filter((b) => showArchived || !b.archived)
   const archivedCount = mine.filter((b) => b.archived).length
+
+  // Thumbnails for the visible beans, signed in one batch request.
+  const thumb = (bean: Bean) => (bean.photo_path ? thumbPath(bean.photo_path) : null)
+  const thumbUrls = useSignedUrls(visible.map(thumb).filter((p) => p !== null), BEAN_PHOTO_BUCKET)
 
   return (
     <section className="flex flex-col gap-4">
@@ -31,7 +37,7 @@ export default function Beans() {
         <ul className={listClass}>
           {visible.map((bean) => (
             <li key={bean.id}>
-              <BeanRow bean={bean} />
+              <BeanRow bean={bean} thumbUrl={thumbUrls.data?.[thumb(bean) ?? '']} />
             </li>
           ))}
         </ul>
@@ -47,15 +53,15 @@ export default function Beans() {
   )
 }
 
-function BeanRow({ bean }: { bean: Bean }) {
+function BeanRow({ bean, thumbUrl }: { bean: Bean; thumbUrl?: string }) {
   // "Ethiopia, washed": a plain phrase instead of dot-separated fragments.
   const details = [bean.origin, bean.process?.toLowerCase()].filter(Boolean).join(', ')
   const days = bean.roast_date ? daysSince(bean.roast_date) : null
 
   return (
     <Link to={`/beans/${bean.id}`} className={`flex items-center gap-3 py-3 ${bean.archived ? 'opacity-60' : ''}`}>
-      {/* Like the colour sticker on a roaster's bag. */}
-      <RoastSwatch level={bean.roast_level} className="size-12 rounded-lg" />
+      {/* The bag itself, or the colour sticker on a roaster's bag when there's no photo. */}
+      <BeanThumb url={thumbUrl} level={bean.roast_level} className="size-12 rounded-lg" />
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{bean.name}</p>

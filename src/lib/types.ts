@@ -13,6 +13,7 @@ export type Bean = {
   roast_level: RoastLevel | null
   roast_date: string | null // 'YYYY-MM-DD'
   notes: string | null
+  photo_path: string | null // in the bean-photos bucket; set with useSetBeanPhoto, not the form
   archived: boolean
   created_by: string | null
   group_id: string | null // null = private to created_by

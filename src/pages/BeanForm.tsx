@@ -1,9 +1,12 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import BeanThumb from '../components/BeanThumb'
 import RoastBean from '../components/RoastBean'
 import StickyActions from '../components/StickyActions'
-import { useBeans, useSaveBean, useSetBeanArchived } from '../hooks/useBeans'
+import { useBeans, useSaveBean, useSetBeanArchived, useSetBeanPhoto } from '../hooks/useBeans'
+import { useSignedUrls } from '../hooks/usePhotos'
 import { emptyToNull, friendlyError, todayIso } from '../lib/format'
+import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { inputClass, labelClass, pageTitle, primaryButton, secondaryButton, sectionTitle, textButton } from '../lib/styles'
 import { ROAST_LEVELS, type Bean, type RoastLevel } from '../lib/types'
 
@@ -28,6 +31,10 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
   const navigate = useNavigate()
   const save = useSaveBean()
   const setArchived = useSetBeanArchived()
+  const setPhoto = useSetBeanPhoto()
+  // undefined = keep the saved photo, null = remove it, File = replace it. Applied on save.
+  const [photo, setPhotoChoice] = useState<File | null>()
+  const photoChanged = photo instanceof File || (photo === null && !!initial?.photo_path)
 
   // One state object for the whole form. Inputs work with strings; '' = empty.
   const [form, setForm] = useState({
@@ -57,7 +64,20 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
         roast_date: emptyToNull(form.roast_date),
         notes: emptyToNull(form.notes),
       },
-      { onSuccess: () => navigate('/beans') },
+      {
+        // The bean now exists and has an id, so the photo can be stored under it.
+        onSuccess: async (beanId) => {
+          if (photoChanged) {
+            try {
+              await setPhoto.mutateAsync({ bean: { id: beanId, photo_path: initial?.photo_path ?? null }, file: photo ?? null })
+            } catch (err) {
+              // The bean is saved, so don't stay here (saving a new bean again would duplicate it).
+              window.alert(`The bean was saved, but the photo couldn't be updated: ${friendlyError(err)}\nYou can try again from the bean's page.`)
+            }
+          }
+          navigate('/beans')
+        },
+      },
     )
   }
 
@@ -101,6 +121,13 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
           </div>
         </div>
       </section>
+
+      <BeanPhotoField
+        savedPath={initial?.photo_path ?? null}
+        level={(emptyToNull(form.roast_level) as RoastLevel | null)}
+        value={photo}
+        onChange={setPhotoChoice}
+      />
 
       {/* Roast level as bean chips: you pick the colour you'll see everywhere else. */}
       <fieldset className="flex flex-col gap-2 border-t border-line pt-5">
@@ -149,10 +176,62 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
 
       <StickyActions>
         <button type="button" onClick={() => navigate('/beans')} className={secondaryButton}>Cancel</button>
-        <button disabled={save.isPending} className={`${primaryButton} flex-1`}>
-          {save.isPending ? 'Saving…' : 'Save bean'}
+        <button disabled={save.isPending || setPhoto.isPending} className={`${primaryButton} flex-1`}>
+          {save.isPending || setPhoto.isPending ? 'Saving…' : 'Save bean'}
         </button>
       </StickyActions>
     </form>
+  )
+}
+
+type PhotoFieldProps = {
+  savedPath: string | null
+  level: RoastLevel | null
+  value: File | null | undefined // see the photo state in BeanFormFields
+  onChange: (value: File | null) => void
+}
+
+// Add, change or remove the bag photo. Controlled: the form owns the choice and applies it on save.
+function BeanPhotoField({ savedPath, level, value, onChange }: PhotoFieldProps) {
+  const saved = useSignedUrls(savedPath ? [thumbPath(savedPath)] : [], BEAN_PHOTO_BUCKET)
+  const [pickedUrl, setPickedUrl] = useState<string>()
+
+  // A temporary local address for the picked file, released when it changes
+  // (same pattern, and same reason for the effect, as the preview in PendingPhotos).
+  useEffect(() => {
+    if (!(value instanceof File)) return
+    const objectUrl = URL.createObjectURL(value)
+    // oxlint-disable-next-line react/set-state-in-effect
+    setPickedUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [value])
+
+  const url = value instanceof File ? pickedUrl : value === null ? undefined : saved.data?.[thumbPath(savedPath ?? '')]
+  const hasPhoto = value instanceof File || (value === undefined && savedPath !== null)
+
+  function onPick(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) onChange(file)
+    e.target.value = '' // reset, so picking the same file again still fires onChange
+  }
+
+  return (
+    <section className="flex flex-col gap-3 border-t border-line pt-5">
+      <h2 className={sectionTitle}>Photo</h2>
+      <div className="flex items-center gap-4">
+        <BeanThumb url={url} level={level} className="size-24 rounded-lg" />
+        <div className="flex flex-col items-start gap-1">
+          <label className={`${secondaryButton} cursor-pointer text-sm`}>
+            {hasPhoto ? 'Change photo' : 'Add photo'}
+            <input type="file" accept="image/*" onChange={onPick} className="hidden" />
+          </label>
+          {hasPhoto && (
+            <button type="button" onClick={() => onChange(null)} className={textButton}>Remove photo</button>
+          )}
+        </div>
+      </div>
+      {value instanceof File && <p className="text-sm text-muted">Uploaded when you save the bean.</p>}
+      {value === null && savedPath && <p className="text-sm text-muted">Removed when you save the bean.</p>}
+    </section>
   )
 }
