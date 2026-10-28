@@ -146,8 +146,6 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
     e.preventDefault()
     setFormError(null)
 
-    if (form.rating_overall === null) return setFormError('Choose an overall score under Taste before saving.')
-
     const numbers = {
       grind_setting: parseNumber(form.grind_setting),
       dose_g: parseNumber(form.dose_g),
@@ -300,7 +298,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
       {/* ---------------- Taste ---------------- */}
       <section className={section}>
         <h2 className={sectionTitle}>Taste</h2>
-        <ScoreInput label="Overall" required value={form.rating_overall} onChange={(v) => set('rating_overall', v)} />
+        <ScoreInput label="Overall" value={form.rating_overall} onChange={(v) => set('rating_overall', v)} />
         {info.milk && (
           <ScoreInput label="Latte art" value={form.latte_art_rating} onChange={(v) => set('latte_art_rating', v)} />
         )}

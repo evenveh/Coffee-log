@@ -73,15 +73,19 @@ export default function BrewView({ brew: b, by, readOnly }: Props) {
         ) : (
           <span />
         )}
-        <div className="text-right">
-          <p className="num text-6xl leading-none">
-            {b.rating_overall}
-            <span className="text-2xl text-muted">/10</span>
-          </p>
-          <span className="mt-2 block h-1.5 w-full rounded-full bg-line">
-            <span className="block h-1.5 rounded-full bg-crema" style={{ width: `${b.rating_overall * 10}%` }} />
-          </span>
-        </div>
+        {b.rating_overall !== null ? (
+          <div className="text-right">
+            <p className="num text-6xl leading-none">
+              {b.rating_overall}
+              <span className="text-2xl text-muted">/10</span>
+            </p>
+            <span className="mt-2 block h-1.5 w-full rounded-full bg-line">
+              <span className="block h-1.5 rounded-full bg-crema" style={{ width: `${b.rating_overall * 10}%` }} />
+            </span>
+          </div>
+        ) : (
+          <p className="pb-1 text-sm text-muted">Not rated yet</p>
+        )}
       </div>
 
       {(facts.length > 0 || equipment.length > 0) && (

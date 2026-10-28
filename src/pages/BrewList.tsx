@@ -70,7 +70,8 @@ function BrewRow({ brew, thumbUrl }: { brew: BrewWithRelations; thumbUrl?: strin
 
       {thumbUrl && <img src={thumbUrl} alt="" loading="lazy" className="size-14 shrink-0 self-center rounded-lg object-cover" />}
 
-      <Score value={brew.rating_overall} />
+      {/* A nudge to come back after tasting. Only here: friends' brews aren't mine to rate. */}
+      <Score value={brew.rating_overall} unratedLabel="Rate" />
     </Link>
   )
 }

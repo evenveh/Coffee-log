@@ -37,7 +37,7 @@ export type Brew = {
   time_s: number | null
   water_temp_c: number | null
   milk_id: string | null
-  rating_overall: number
+  rating_overall: number | null
   sweetness: number | null
   acidity: number | null
   bitterness: number | null
