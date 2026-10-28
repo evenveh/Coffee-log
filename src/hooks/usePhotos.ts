@@ -7,14 +7,15 @@ import { useUser } from './useAuth'
 const URL_LIFETIME_S = 60 * 60 // signed URLs work for 1 hour
 
 // Temporary links for private files, as { path: url }. One request for many files.
-export function useSignedUrls(paths: string[]) {
+export function useSignedUrls(paths: string[], bucket = PHOTO_BUCKET) {
   return useQuery({
-    queryKey: ['signed-urls', paths],
+    // The bucket is part of the key: the same path in another bucket is another file.
+    queryKey: ['signed-urls', bucket, paths],
     enabled: paths.length > 0,
     // Reuse cached links for 50 min, then fetch fresh ones before the old ones expire.
     staleTime: (URL_LIFETIME_S - 10 * 60) * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrls(paths, URL_LIFETIME_S)
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrls(paths, URL_LIFETIME_S)
       if (error) throw error
       const urls: Record<string, string> = {}
       for (const item of data) if (item.path && item.signedUrl) urls[item.path] = item.signedUrl

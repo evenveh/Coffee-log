@@ -1,6 +1,7 @@
 import imageCompression from 'browser-image-compression'
 
 export const PHOTO_BUCKET = 'brew-photos'
+export const BEAN_PHOTO_BUCKET = 'bean-photos' // paths start with the bean id, not a user id
 
 // Each photo is stored twice: full size for viewing, a small thumbnail for lists.
 // The thumbnail path is derived from the full path, so the database only stores one.
