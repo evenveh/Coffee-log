@@ -65,7 +65,11 @@ export function useSetBeanPhoto() {
         throw error
       }
 
-      // TODO(human): remove the old photo's files (bean.photo_path), if there was one.
+      if (bean.photo_path) {
+        const { error: removeError } = await bucket.remove([bean.photo_path, thumbPath(bean.photo_path)])
+        // Only warn: the bean already shows the new photo, so failing here would report a working save as failed.
+        if (removeError) console.warn('The old bean photo could not be deleted:', bean.photo_path, removeError)
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['beans'] }),
   })

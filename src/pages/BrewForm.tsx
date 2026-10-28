@@ -1,16 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import BeanThumb from '../components/BeanThumb'
 import PendingPhotos from '../components/PendingPhotos'
-import RoastSwatch from '../components/RoastSwatch'
 import ScoreInput from '../components/ScoreInput'
 import StickyActions from '../components/StickyActions'
 import { useBeans } from '../hooks/useBeans'
 import { useBrew, useBrews, useSaveBrew } from '../hooks/useBrews'
 import { useFriendBrew } from '../hooks/useFriends'
 import { useNamedList } from '../hooks/useNamedList'
-import { useUploadPhotos } from '../hooks/usePhotos'
+import { useSignedUrls, useUploadPhotos } from '../hooks/usePhotos'
 import { DRINK_TYPES, drinkInfo, type DrinkType } from '../lib/drinkTypes'
 import { daysSince, emptyToNull, formatDateTime, formatRatio, friendlyError, parseNumber, toLocalInput } from '../lib/format'
+import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { inputClass, labelClass, pageTitle, primaryButton, secondaryButton, sectionTitle } from '../lib/styles'
 import type { Brew } from '../lib/types'
 
@@ -136,6 +137,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   const ratio = formatRatio(parseNumber(form.dose_g), parseNumber(form.yield_g))
   const selectedBean = beans.data?.find((b) => b.id === form.bean_id)
   const daysOff = selectedBean?.roast_date ? daysSince(selectedBean.roast_date, new Date(form.brewed_at)) : null
+  const beanThumbPath = selectedBean?.photo_path ? thumbPath(selectedBean.photo_path) : null
+  const beanThumb = useSignedUrls(beanThumbPath ? [beanThumbPath] : [], BEAN_PHOTO_BUCKET)
 
   // Active items from my list, plus the one already chosen (when editing an old brew,
   // it may be archived, or from a group I've left).
@@ -230,7 +233,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
         <div>
           <label className={labelClass} htmlFor="bean_id">Bean</label>
           <div className="flex items-center gap-2">
-            <RoastSwatch level={selectedBean?.roast_level} className="size-11 rounded-lg" />
+            {/* A native select can't show images in its options, so the chosen bean's photo sits beside it. */}
+            <BeanThumb url={beanThumb.data?.[beanThumbPath ?? '']} level={selectedBean?.roast_level} className="size-11 rounded-lg" />
             <select id="bean_id" value={form.bean_id} onChange={text('bean_id')} className={inputClass}>
               <option value="">No bean selected</option>
               {active(beans.data, form.bean_id).map((b) => (
