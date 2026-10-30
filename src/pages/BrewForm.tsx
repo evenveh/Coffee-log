@@ -81,10 +81,15 @@ function recipeFields(brew?: Brew) {
   }
 }
 
-// The grinder of my latest brew of this kind (espresso or filter), or '' if there's none.
-// So a new espresso starts with my espresso grinder, not the one I used for filter.
-function lastGrinder(recent: Brew[] | undefined, category: 'espresso' | 'filter'): string {
-  return recent?.find((b) => b.grinder_id && drinkInfo(b.drink_type).category === category)?.grinder_id ?? ''
+// The grinder a new brew should start with, from my latest brews: the one I last used with this
+// bean for this kind of drink (espresso or filter), else with this bean at all. So a bean keeps
+// "its" grinder. '' (None) with no bean or a bean I haven't brewed yet: guessing from other beans
+// would pick the wrong grinder when different beans go through different grinders.
+function defaultGrinder(recent: Brew[] | undefined, form: Pick<FormState, 'bean_id' | 'drink_type'>): string {
+  if (!form.bean_id) return ''
+  const kind = drinkInfo(form.drink_type).category
+  const last = (test: (b: Brew) => boolean) => recent?.find((b) => b.grinder_id && b.bean_id === form.bean_id && test(b))?.grinder_id
+  return last((b) => drinkInfo(b.drink_type).category === kind) ?? last(() => true) ?? ''
 }
 
 // "How it tasted" — never copied.
@@ -130,8 +135,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew, recent }: FieldsProps) {
 
   const [form, setForm] = useState<FormState>(() => {
     const recipe = recipeFields(initial ?? copyFrom)
-    // A fresh brew (not an edit or a copy) starts with the grinder I last used for this kind of drink.
-    if (!initial && !copyFrom) recipe.grinder_id = lastGrinder(recent, drinkInfo(recipe.drink_type).category)
+    // A fresh brew (not an edit or a copy) starts with the default grinder.
+    if (!initial && !copyFrom) recipe.grinder_id = defaultGrinder(recent, recipe)
     return { brewed_at: toLocalInput(initial?.brewed_at ?? new Date().toISOString()), ...recipe, ...tasteFields(initial) }
   })
 
@@ -140,13 +145,13 @@ function BrewFormFields({ initial, copyFrom, lastBrew, recent }: FieldsProps) {
     setForm((f) => ({ ...f, [field]: value }))
   }
 
-  // Switching between espresso and filter also swaps the grinder, but only if it's still the
-  // default (the last one for the old kind); a grinder I picked myself stays.
-  function setDrink(drink: DrinkType) {
+  // The bean and the drink decide the default grinder. When either changes, the grinder follows
+  // the new default, but only while it's still the old default; a grinder I picked myself stays.
+  function setAndFollowGrinder(changes: Partial<Pick<FormState, 'bean_id' | 'drink_type'>>) {
     setForm((f) => {
-      const [from, to] = [drinkInfo(f.drink_type).category, drinkInfo(drink).category]
-      const swap = !initial && from !== to && f.grinder_id === lastGrinder(recent, from)
-      return { ...f, drink_type: drink, grinder_id: swap ? lastGrinder(recent, to) : f.grinder_id }
+      const next = { ...f, ...changes }
+      const follow = !initial && f.grinder_id === defaultGrinder(recent, f)
+      return follow ? { ...next, grinder_id: defaultGrinder(recent, next) } : next
     })
   }
   const text = (field: keyof FormState) => (e: { target: { value: string } }) => set(field, e.target.value)
@@ -237,8 +242,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew, recent }: FieldsProps) {
       {/* ---------------- Drink ---------------- */}
       <fieldset className="flex flex-col gap-3">
         <legend className="sr-only">Drink</legend>
-        <DrinkChips group="Espresso" category="espresso" value={form.drink_type} onChange={setDrink} />
-        <DrinkChips group="Filter" category="filter" value={form.drink_type} onChange={setDrink} />
+        <DrinkChips group="Espresso" category="espresso" value={form.drink_type} onChange={(v) => setAndFollowGrinder({ drink_type: v })} />
+        <DrinkChips group="Filter" category="filter" value={form.drink_type} onChange={(v) => setAndFollowGrinder({ drink_type: v })} />
       </fieldset>
 
       <div>
@@ -255,7 +260,7 @@ function BrewFormFields({ initial, copyFrom, lastBrew, recent }: FieldsProps) {
           <div className="flex items-center gap-2">
             {/* A native select can't show images in its options, so the chosen bean's photo sits beside it. */}
             <BeanThumb url={beanThumb.data?.[beanThumbPath ?? '']} level={selectedBean?.roast_level} className="size-11 rounded-lg" />
-            <select id="bean_id" value={form.bean_id} onChange={text('bean_id')} className={inputClass}>
+            <select id="bean_id" value={form.bean_id} onChange={(e) => setAndFollowGrinder({ bean_id: e.target.value })} className={inputClass}>
               <option value="">No bean selected</option>
               {active(beans.data, form.bean_id).map((b) => (
                 <option key={b.id} value={b.id}>{b.roaster ? `${b.name} (${b.roaster})` : b.name}</option>
