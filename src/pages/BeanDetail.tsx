@@ -86,7 +86,7 @@ export default function BeanDetail() {
           <div>
             <h2 className={sectionTitle}>Grind profile</h2>
             {/* The chart's times depend on the ratio and dose, so say which. */}
-            <p className="text-sm text-muted">Estimated time for 1:{DEFAULT_TARGET.ratio} at {dose} g, from the flow rate of your earlier shots</p>
+            <p className="text-sm text-muted">Estimated time for a 1:{DEFAULT_TARGET.ratio} shot at {dose} g, based on the flow rates of your earlier shots</p>
           </div>
           <BeanChart
             series={lines}
