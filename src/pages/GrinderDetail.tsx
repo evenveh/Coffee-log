@@ -3,14 +3,15 @@ import { useParams } from 'react-router-dom'
 import GrinderChart from '../components/GrinderChart'
 import { useBrews } from '../hooks/useBrews'
 import { useNamedList } from '../hooks/useNamedList'
-import { DEFAULT_TARGET, grinderProfile, settingStats, shotFlow, suggest, targetFlow, type Suggestion } from '../lib/dialIn'
+import { DEFAULT_TARGET, grinderProfile, secondsPerStep, segments, settingStats, shotFlow, suggest, targetFlow, type Suggestion } from '../lib/dialIn'
 import { parseNumber } from '../lib/format'
 import { inputClass, labelClass, listClass, pageTitle, sectionTitle } from '../lib/styles'
 
 // The most the target fields accept. Beyond these the chart is all model and no measurement.
 const LIMITS = { dose: 40, ratio: 10, time: 120 }
 
-// One grinder: how sensitive it is and where each bean lands, from my own espresso shots (lib/dialIn.ts).
+// One grinder: how big a step is across the dial (its fingerprint) and where each bean lands,
+// from my own espresso shots (lib/dialIn.ts).
 export default function GrinderDetail() {
   const { id } = useParams()
   const brews = useBrews()
@@ -50,7 +51,6 @@ export default function GrinderDetail() {
 
   const profile = grinderProfile(all, grinder.id, dose)
   const goal = targetFlow(target, dose)
-  const toTime = (flow: number) => (dose * target.ratio) / flow
 
   // One entry per bean, most recently brewed first.
   const beanIds = [...new Set(shots.map((b) => b.bean_id).filter((b): b is string => b != null))]
@@ -60,7 +60,7 @@ export default function GrinderDetail() {
       id: beanId,
       name: shots.find((b) => b.bean_id === beanId)?.bean?.name ?? 'Unknown bean',
       suggestion: suggest(stats, profile, goal),
-      averages: stats.map((s) => ({ setting: s.setting, time: toTime(s.flow), shots: s.shots })),
+      segments: segments(stats, profile).map((s) => ({ from: s.from, to: s.to, seconds: secondsPerStep(s.slope, goal, target.time_s) })),
     }
   })
   const selectedId = picked ?? beans[0]?.id
@@ -76,8 +76,12 @@ export default function GrinderDetail() {
       <h1 className={pageTitle}>{grinder.name}</h1>
 
       <section className="flex flex-col gap-3 border-t border-line pt-5">
-        <h2 className={sectionTitle}>Time for 1:{target.ratio} at {dose} g</h2>
-        <GrinderChart series={beans} selectedId={selectedId} targetTime={target.time_s} coarserIsHigher={profile.slope ? profile.slope > 0 : null} />
+        <h2 className={sectionTitle}>Seconds per step near {target.time_s} s</h2>
+        {beans.some((b) => b.segments.length > 0) ? (
+          <GrinderChart series={beans} selectedId={selectedId} coarserIsHigher={profile.slope ? profile.slope > 0 : null} />
+        ) : (
+          <p className="text-sm text-muted">Brew one bean at two different settings to see how big a step is.</p>
+        )}
 
         {/* Folded away: it's for exploring, not something you need every visit. */}
         <details>
