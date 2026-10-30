@@ -12,6 +12,7 @@ type Props = {
   series: ChartSeries[]
   selectedId: string
   targetTime: number
+  ratio: number // the target ratio the times are converted to, for the labels
   ideal: number | null // the selected grinder's suggested setting, drawn where it meets the target
   coarserIsHigher: boolean | null // from the selected grinder's slope; null = not known yet
   precision: number // decimals the selected grinder's settings are logged in
@@ -24,8 +25,8 @@ const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
 // One bean: time for the target ratio against grind setting, one line per grinder I used it with.
 // The selected grinder is drawn in crema, others faint. Hand-drawn SVG: no chart library.
-export default function BeanChart({ series, selectedId, targetTime, ideal, coarserIsHigher, precision }: Props) {
-  const [active, setActive] = useState<number | null>(null) // which average point shows its value
+export default function BeanChart({ series, selectedId, targetTime, ratio, ideal, coarserIsHigher, precision }: Props) {
+  const [active, setActive] = useState<number | 'ideal' | null>(null) // which point shows its label
   const all = series.flatMap((s) => s.averages)
   if (all.length === 0) return null
 
@@ -50,10 +51,17 @@ export default function BeanChart({ series, selectedId, targetTime, ideal, coars
   const selected = series.find((s) => s.id === selectedId)
   const others = series.filter((s) => s.id !== selectedId)
   const line = (points: Point[]) => points.map((p) => `${x(p.setting)},${y(p.time)}`).join(' ')
-  const shown = active !== null ? selected?.averages[active] : undefined
+  // The label for the hovered or tapped point. The times are converted (how long that setting
+  // takes to reach the target ratio), not measured, so the label says "about … to 1:2".
+  const point = typeof active === 'number' ? selected?.averages[active] : undefined
+  const tip =
+    active === 'ideal' && ideal !== null
+      ? { x: x(ideal), y: y(targetTime), text: `Try ${ideal} for 1:${ratio} in ${targetTime} s` }
+      : point && { x: x(point.setting), y: y(point.time), text: `${point.setting}: about ${Math.round(point.time)} s to 1:${ratio} (${point.shots} ${point.shots === 1 ? 'shot' : 'shots'})` }
 
   // Mouse: show on hover. Touch: show on tap (a touch fires pointerleave right after, so ignore that).
-  const hover = (i: number | null) => (e: PointerEvent) => e.pointerType === 'mouse' && setActive(i)
+  const hover = (i: number | 'ideal' | null) => (e: PointerEvent) => e.pointerType === 'mouse' && setActive(i)
+  const tap = (i: number | 'ideal') => () => setActive(active === i ? null : i)
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Shot time by grind setting${selected ? ` for ${selected.name}` : ''}`}>
@@ -87,7 +95,7 @@ export default function BeanChart({ series, selectedId, targetTime, ideal, coars
         <g>
           <polyline points={line(selected.averages)} fill="none" className="stroke-crema" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
           {selected.averages.map((p, i) => (
-            <g key={p.setting} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={() => setActive(active === i ? null : i)} className="cursor-pointer">
+            <g key={p.setting} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={tap(i)} className="cursor-pointer">
               <circle cx={x(p.setting)} cy={y(p.time)} r={14} className="fill-transparent" />
               <circle cx={x(p.setting)} cy={y(p.time)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
             </g>
@@ -96,19 +104,24 @@ export default function BeanChart({ series, selectedId, targetTime, ideal, coars
       )}
 
       {/* The ideal: where the line meets the target. Hollow, so it reads as "aim here", not a measured shot. */}
-      {ideal !== null && <circle cx={x(ideal)} cy={y(targetTime)} r={5} className="fill-bg stroke-crema" strokeWidth={2} />}
+      {ideal !== null && (
+        <g onPointerEnter={hover('ideal')} onPointerLeave={hover(null)} onClick={tap('ideal')} className="cursor-pointer">
+          <circle cx={x(ideal)} cy={y(targetTime)} r={14} className="fill-transparent" />
+          <circle cx={x(ideal)} cy={y(targetTime)} r={5} className="fill-bg stroke-crema" strokeWidth={2} />
+        </g>
+      )}
 
-      {/* The value of the hovered or tapped point. paint-order draws a background-coloured outline under the text. */}
-      {shown && (
+      {/* The label of the hovered or tapped point. paint-order draws a background-coloured outline under the text. */}
+      {tip && (
         <text
-          x={x(shown.setting)}
-          y={y(shown.time) - 12}
-          textAnchor={x(shown.setting) < W * 0.2 ? 'start' : x(shown.setting) > W * 0.8 ? 'end' : 'middle'}
+          x={tip.x}
+          y={tip.y - 12}
+          textAnchor={tip.x < W * 0.3 ? 'start' : tip.x > W * 0.7 ? 'end' : 'middle'}
           className="num fill-ink stroke-bg text-xs"
           strokeWidth={4}
           paintOrder="stroke"
         >
-          {shown.setting}: {Math.round(shown.time)} s ({shown.shots} {shown.shots === 1 ? 'shot' : 'shots'})
+          {tip.text}
         </text>
       )}
     </svg>
