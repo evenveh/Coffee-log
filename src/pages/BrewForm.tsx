@@ -33,9 +33,10 @@ export default function BrewForm() {
     return <BrewFormFields key={id} initial={existing.data} />
   }
 
-  if (fromId && (brews.isLoading || friendBrew.isLoading)) return <p className="text-muted">Loading…</p>
+  // Wait for my brews even without a copy: the form picks its default grinder from them, once.
+  if (brews.isLoading || (fromId && friendBrew.isLoading)) return <p className="text-muted">Loading…</p>
   const copyFrom = brews.data?.find((b) => b.id === fromId) ?? friendBrew.data ?? undefined
-  return <BrewFormFields key={fromId ?? 'new'} copyFrom={copyFrom} lastBrew={brews.data?.[0]} />
+  return <BrewFormFields key={fromId ?? 'new'} copyFrom={copyFrom} lastBrew={brews.data?.[0]} recent={brews.data} />
 }
 
 // ---------------------------------------------------------------------------
@@ -80,6 +81,12 @@ function recipeFields(brew?: Brew) {
   }
 }
 
+// The grinder of my latest brew of this kind (espresso or filter), or '' if there's none.
+// So a new espresso starts with my espresso grinder, not the one I used for filter.
+function lastGrinder(recent: Brew[] | undefined, category: 'espresso' | 'filter'): string {
+  return recent?.find((b) => b.grinder_id && drinkInfo(b.drink_type).category === category)?.grinder_id ?? ''
+}
+
 // "How it tasted" — never copied.
 function tasteFields(brew?: Brew) {
   return {
@@ -107,9 +114,10 @@ type FieldsProps = {
   initial?: Brew // editing this brew
   copyFrom?: Brew // new brew, prefilled with this brew's recipe
   lastBrew?: Brew // for the "Copy last brew" button
+  recent?: Brew[] // my brews, newest first, for the default grinder
 }
 
-function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
+function BrewFormFields({ initial, copyFrom, lastBrew, recent }: FieldsProps) {
   const navigate = useNavigate()
   const save = useSaveBrew()
   const beans = useBeans()
@@ -120,15 +128,26 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
   const upload = useUploadPhotos()
   const [photos, setPhotos] = useState<File[]>([]) // picked, not uploaded yet
 
-  const [form, setForm] = useState<FormState>(() => ({
-    brewed_at: toLocalInput(initial?.brewed_at ?? new Date().toISOString()),
-    ...recipeFields(initial ?? copyFrom),
-    ...tasteFields(initial),
-  }))
+  const [form, setForm] = useState<FormState>(() => {
+    const recipe = recipeFields(initial ?? copyFrom)
+    // A fresh brew (not an edit or a copy) starts with the grinder I last used for this kind of drink.
+    if (!initial && !copyFrom) recipe.grinder_id = lastGrinder(recent, drinkInfo(recipe.drink_type).category)
+    return { brewed_at: toLocalInput(initial?.brewed_at ?? new Date().toISOString()), ...recipe, ...tasteFields(initial) }
+  })
 
   // Update one field. The generic <K> makes TypeScript check that the value fits the field.
   function set<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [field]: value }))
+  }
+
+  // Switching between espresso and filter also swaps the grinder, but only if it's still the
+  // default (the last one for the old kind); a grinder I picked myself stays.
+  function setDrink(drink: DrinkType) {
+    setForm((f) => {
+      const [from, to] = [drinkInfo(f.drink_type).category, drinkInfo(drink).category]
+      const swap = !initial && from !== to && f.grinder_id === lastGrinder(recent, from)
+      return { ...f, drink_type: drink, grinder_id: swap ? lastGrinder(recent, to) : f.grinder_id }
+    })
   }
   const text = (field: keyof FormState) => (e: { target: { value: string } }) => set(field, e.target.value)
 
@@ -218,8 +237,8 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
       {/* ---------------- Drink ---------------- */}
       <fieldset className="flex flex-col gap-3">
         <legend className="sr-only">Drink</legend>
-        <DrinkChips group="Espresso" category="espresso" value={form.drink_type} onChange={(v) => set('drink_type', v)} />
-        <DrinkChips group="Filter" category="filter" value={form.drink_type} onChange={(v) => set('drink_type', v)} />
+        <DrinkChips group="Espresso" category="espresso" value={form.drink_type} onChange={setDrink} />
+        <DrinkChips group="Filter" category="filter" value={form.drink_type} onChange={setDrink} />
       </fieldset>
 
       <div>
