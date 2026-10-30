@@ -1,57 +1,53 @@
 import { useState, type PointerEvent } from 'react'
 
-type Point = { setting: number; time: number }
-
 export type ChartSeries = {
   id: string
   name: string
-  averages: (Point & { shots: number })[] // one per setting, sorted by setting
+  segments: { from: number; to: number; seconds: number }[] // seconds per step within from..to
 }
 
 type Props = {
   series: ChartSeries[]
   selectedId: string
-  targetTime: number
   coarserIsHigher: boolean | null // from the grinder's slope; null = not known yet
 }
 
 // Drawing size in SVG units. The SVG scales to the page width, so these are proportions, not pixels.
 const W = 340
-const H = 220
+const H = 200
 const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
-// Time for the target ratio against grind setting. The selected bean is drawn in crema; the
-// other beans stay faint, for context. Hand-drawn SVG: no chart library.
-export default function GrinderChart({ series, selectedId, targetTime, coarserIsHigher }: Props) {
-  const [active, setActive] = useState<number | null>(null) // which average point shows its value
-  const all = series.flatMap((s) => s.averages)
+// The grinder's fingerprint: how many seconds one step makes in each stretch of the dial.
+// Each bean adds a short line over the stretch it covers; where beans agree, that's the grinder.
+// The selected bean is drawn in crema, the others faint. Hand-drawn SVG: no chart library.
+export default function GrinderChart({ series, selectedId, coarserIsHigher }: Props) {
+  const [active, setActive] = useState<number | null>(null) // which of the selected bean's segments shows its value
+  const all = series.flatMap((s) => s.segments)
   if (all.length === 0) return null
 
-  // Scales: setting -> x, seconds -> y (slower shots higher up). A little air at both ends of x.
-  const settings = all.map((p) => p.setting)
+  // Scales: setting -> x, seconds -> y (from 0, so heights compare). A little air at both ends of x.
+  const settings = all.flatMap((s) => [s.from, s.to])
   const xMin = Math.min(...settings) - 0.3
   const xMax = Math.max(...settings) + 0.3
-  const times = [...all.map((p) => p.time), targetTime]
-  const yMin = Math.floor(Math.min(...times) / 10) * 10
-  const yMax = Math.max(Math.ceil(Math.max(...times) / 10) * 10, yMin + 10)
+  const yStep = Math.max(...all.map((s) => s.seconds)) > 30 ? 10 : 5
+  const yMax = Math.max(Math.ceil(Math.max(...all.map((s) => s.seconds)) / yStep) * yStep, yStep)
   const x = (s: number) => PAD.left + ((s - xMin) / (xMax - xMin)) * (W - PAD.left - PAD.right)
-  const y = (t: number) => PAD.top + ((yMax - t) / (yMax - yMin)) * (H - PAD.top - PAD.bottom)
+  const y = (t: number) => PAD.top + ((yMax - t) / yMax) * (H - PAD.top - PAD.bottom)
 
   const range = xMax - xMin
   const xStep = range > 12 ? 5 : range > 6 ? 2 : 1
   const xTicks = steps(Math.ceil(xMin / xStep) * xStep, xMax, xStep)
-  const yTicks = steps(yMin, yMax, 10)
+  const yTicks = steps(0, yMax, yStep)
 
   const selected = series.find((s) => s.id === selectedId)
   const others = series.filter((s) => s.id !== selectedId)
-  const line = (points: Point[]) => points.map((p) => `${x(p.setting)},${y(p.time)}`).join(' ')
-  const shown = active !== null ? selected?.averages[active] : undefined
+  const shown = active !== null ? selected?.segments[active] : undefined
 
   // Mouse: show on hover. Touch: show on tap (a touch fires pointerleave right after, so ignore that).
   const hover = (i: number | null) => (e: PointerEvent) => e.pointerType === 'mouse' && setActive(i)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Shot time by grind setting${selected ? ` for ${selected.name}` : ''}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Seconds per grind step across the dial">
       {/* Grid and axes: hairlines, quiet. */}
       {yTicks.map((t) => (
         <g key={t}>
@@ -69,38 +65,34 @@ export default function GrinderChart({ series, selectedId, targetTime, coarserIs
         </>
       )}
 
-      {/* The target time, slightly stronger than the grid. */}
-      <line x1={PAD.left} x2={W - PAD.right} y1={y(targetTime)} y2={y(targetTime)} className="stroke-muted" strokeWidth={1} />
-      <text x={W - PAD.right} y={y(targetTime) - 4} textAnchor="end" className="fill-muted text-[10px]">Target</text>
-
-      {/* Other beans: faint lines, for comparison. */}
-      {others.map((s) => (
-        <polyline key={s.id} points={line(s.averages)} fill="none" className="stroke-muted opacity-35" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-      ))}
-
-      {selected && (
-        <g>
-          <polyline points={line(selected.averages)} fill="none" className="stroke-crema" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-          {selected.averages.map((p, i) => (
-            <g key={p.setting} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={() => setActive(active === i ? null : i)} className="cursor-pointer">
-              <circle cx={x(p.setting)} cy={y(p.time)} r={14} className="fill-transparent" />
-              <circle cx={x(p.setting)} cy={y(p.time)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
-            </g>
-          ))}
-        </g>
+      {/* Other beans: faint, for comparison. */}
+      {others.flatMap((s) =>
+        s.segments.map((seg) => (
+          <line key={`${s.id}${seg.from}`} x1={x(seg.from)} x2={x(seg.to)} y1={y(seg.seconds)} y2={y(seg.seconds)} className="stroke-muted opacity-35" strokeWidth={2} strokeLinecap="round" />
+        )),
       )}
 
-      {/* The value of the hovered or tapped point. paint-order draws a background-coloured outline under the text. */}
+      {selected?.segments.map((seg, i) => (
+        <g key={seg.from} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={() => setActive(active === i ? null : i)} className="cursor-pointer">
+          {/* A taller invisible box, so the thin line is easy to tap. */}
+          <rect x={x(seg.from)} y={y(seg.seconds) - 14} width={x(seg.to) - x(seg.from)} height={28} className="fill-transparent" />
+          <line x1={x(seg.from)} x2={x(seg.to)} y1={y(seg.seconds)} y2={y(seg.seconds)} className="stroke-crema" strokeWidth={2} strokeLinecap="round" />
+          <circle cx={x(seg.from)} cy={y(seg.seconds)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
+          <circle cx={x(seg.to)} cy={y(seg.seconds)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
+        </g>
+      ))}
+
+      {/* The value of the hovered or tapped stretch. paint-order draws a background-coloured outline under the text. */}
       {shown && (
         <text
-          x={x(shown.setting)}
-          y={y(shown.time) - 12}
-          textAnchor={x(shown.setting) < W * 0.2 ? 'start' : x(shown.setting) > W * 0.8 ? 'end' : 'middle'}
+          x={x((shown.from + shown.to) / 2)}
+          y={y(shown.seconds) - 12}
+          textAnchor={x((shown.from + shown.to) / 2) < W * 0.2 ? 'start' : x((shown.from + shown.to) / 2) > W * 0.8 ? 'end' : 'middle'}
           className="num fill-ink stroke-bg text-xs"
           strokeWidth={4}
           paintOrder="stroke"
         >
-          {shown.setting}: {Math.round(shown.time)} s ({shown.shots} {shown.shots === 1 ? 'shot' : 'shots'})
+          {shown.from} to {shown.to}: {Math.round(shown.seconds)} s per step
         </text>
       )}
     </svg>

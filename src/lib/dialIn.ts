@@ -153,6 +153,28 @@ function lineSlope(stats: SettingStat[], profile: GrinderProfile): { slope: numb
   return { slope: w * bean + (1 - w) * profile.slope, fromBean }
 }
 
+// One stretch of the dial between two neighbouring settings brewed with the same bean.
+// slope = change in flow (g/s) per +1 on the dial within that stretch.
+export type Segment = { from: number; to: number; slope: number }
+
+// The grinder's fingerprint for one bean: how steep each stretch of the dial is. Stretches that
+// point the other way from the grinder's overall slope are noise (or an ageing bean) and left out.
+export function segments(stats: SettingStat[], profile: GrinderProfile): Segment[] {
+  const out: Segment[] = []
+  for (let i = 0; i + 1 < stats.length; i++) {
+    const [a, b] = [stats[i], stats[i + 1]]
+    const slope = (b.flow - a.flow) / (b.setting - a.setting)
+    if (profile.slope === null || Math.sign(slope) === Math.sign(profile.slope)) out.push({ from: a.setting, to: b.setting, slope })
+  }
+  return out
+}
+
+// How many seconds one step adds or removes near the target time. time = yield / flow, so a
+// small change in flow changes the time by about time × Δflow ÷ flow, measured at the goal flow.
+export function secondsPerStep(slope: number, goal: number, targetTime: number): number {
+  return (targetTime * Math.abs(slope)) / goal
+}
+
 // Least-squares slope of flow against setting: how much flow changes per +1 on the dial.
 export function slopeOf(points: SettingStat[]): number {
   const mx = points.reduce((a, p) => a + p.setting, 0) / points.length
