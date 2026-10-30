@@ -57,7 +57,7 @@ export default function BeanChart({ series, selectedId, targetTime, ratio, ideal
   const point = typeof active === 'number' ? selected?.averages[active] : undefined
   const tip =
     active === 'ideal' && ideal !== null
-      ? { x: x(ideal), y: y(targetTime), text: `Estimated grind setting for a 1:${ratio} in ${targetTime}: s${ideal}` }
+      ? { x: x(ideal), y: y(targetTime), text: `Estimated grind setting for a 1:${ratio} in ${targetTime} s: ${ideal}` }
       : point && { x: x(point.setting), y: y(point.time), text: `${point.setting}: about ${Math.round(point.time)} s to 1:${ratio} (${point.shots} ${point.shots === 1 ? 'shot' : 'shots'})` }
 
   // Mouse: show on hover. Touch: show on tap (a touch fires pointerleave right after, so ignore that).
