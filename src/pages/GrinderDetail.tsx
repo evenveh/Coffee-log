@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import GrinderChart from '../components/GrinderChart'
 import { useBrews } from '../hooks/useBrews'
 import { useNamedList } from '../hooks/useNamedList'
-import { DEFAULT_TARGET, grinderProfile, secondsPerStep, segments, settingStats, shotFlow, suggest, targetFlow, type Suggestion } from '../lib/dialIn'
+import { DEFAULT_TARGET, grinderProfile, secondsPerStep, segments, settingStats, shotFlow, suggest, targetFlow, usualDose, type Suggestion } from '../lib/dialIn'
 import { parseNumber } from '../lib/format'
 import { inputClass, labelClass, listClass, pageTitle, sectionTitle } from '../lib/styles'
 
@@ -27,12 +27,10 @@ export default function GrinderDetail() {
   const all = brews.data
 
   // My espresso shots on this grinder, newest first. By default everything is scaled to my usual
-  // dose (the median, to the nearest half gram), so shots of different sizes compare and one odd
-  // shot doesn't move the chart.
+  // dose (see usualDose), so shots of different sizes compare and one odd shot doesn't move the chart.
   const shots = all.filter((b) => b.grinder_id === grinder.id && b.grind_setting != null && shotFlow(b) != null)
-  const doses = shots.flatMap((b) => (b.dose_g ? [b.dose_g] : []))
-  const usualDose = doses.length > 0 ? Math.round(median(doses) * 2) / 2 : null
-  if (!usualDose) {
+  const usual = usualDose(shots)
+  if (!usual) {
     return (
       <article className="flex flex-col gap-2">
         <h1 className={pageTitle}>{grinder.name}</h1>
@@ -46,7 +44,7 @@ export default function GrinderDetail() {
     const n = readTarget(text)
     return n && n > 0 ? n : fallback
   }
-  const dose = pick(custom.dose, usualDose)
+  const dose = pick(custom.dose, usual)
   const target = { ratio: pick(custom.ratio, DEFAULT_TARGET.ratio), time_s: pick(custom.time, DEFAULT_TARGET.time_s) }
 
   const profile = grinderProfile(all, grinder.id, dose)
@@ -87,7 +85,7 @@ export default function GrinderDetail() {
         <details>
           <summary className="min-h-11 cursor-pointer py-2 text-sm text-muted">Change dose, ratio or time</summary>
           <div className="mt-2 grid grid-cols-3 gap-3">
-            <TargetField id="dose" label="Dose (g)" value={custom.dose} onChange={field('dose')} placeholder={String(usualDose)} />
+            <TargetField id="dose" label="Dose (g)" value={custom.dose} onChange={field('dose')} placeholder={String(usual)} />
             <TargetField id="ratio" label="Ratio (1:x)" value={custom.ratio} onChange={field('ratio')} placeholder={String(DEFAULT_TARGET.ratio)} />
             <TargetField id="time" label="Time (s)" value={custom.time} onChange={field('time')} placeholder={String(DEFAULT_TARGET.time_s)} />
           </div>
@@ -126,13 +124,6 @@ function TargetField(props: { id: string; label: string; value: string; onChange
 // A target field as a number. "1:2.5" and "2.5" both work for the ratio.
 function readTarget(text: string): number | null {
   return parseNumber(text.replace(/^\s*1\s*:/, ''))
-}
-
-// The middle value once sorted (the average of the middle two for an even count).
-function median(values: number[]): number {
-  const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
 // The setting to aim for, or which way to go when we can't say how far yet.
