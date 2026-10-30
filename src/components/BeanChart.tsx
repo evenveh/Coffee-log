@@ -12,6 +12,7 @@ type Props = {
   series: ChartSeries[]
   selectedId: string
   targetTime: number
+  ideal: number | null // the selected grinder's suggested setting, drawn where it meets the target
   coarserIsHigher: boolean | null // from the selected grinder's slope; null = not known yet
 }
 
@@ -22,13 +23,14 @@ const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
 // One bean: time for the target ratio against grind setting, one line per grinder I used it with.
 // The selected grinder is drawn in crema, others faint. Hand-drawn SVG: no chart library.
-export default function BeanChart({ series, selectedId, targetTime, coarserIsHigher }: Props) {
+export default function BeanChart({ series, selectedId, targetTime, ideal, coarserIsHigher }: Props) {
   const [active, setActive] = useState<number | null>(null) // which average point shows its value
   const all = series.flatMap((s) => s.averages)
   if (all.length === 0) return null
 
   // Scales: setting -> x, seconds -> y (slower shots higher up). A little air at both ends of x.
-  const settings = all.map((p) => p.setting)
+  // The ideal counts too: when it's extrapolated, it lies outside the settings tried.
+  const settings = [...all.map((p) => p.setting), ...(ideal !== null ? [ideal] : [])]
   const xMin = Math.min(...settings) - 0.3
   const xMax = Math.max(...settings) + 0.3
   const times = [...all.map((p) => p.time), targetTime]
@@ -89,6 +91,9 @@ export default function BeanChart({ series, selectedId, targetTime, coarserIsHig
           ))}
         </g>
       )}
+
+      {/* The ideal: where the line meets the target. Hollow, so it reads as "aim here", not a measured shot. */}
+      {ideal !== null && <circle cx={x(ideal)} cy={y(targetTime)} r={5} className="fill-bg stroke-crema" strokeWidth={2} />}
 
       {/* The value of the hovered or tapped point. paint-order draws a background-coloured outline under the text. */}
       {shown && (
