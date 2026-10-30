@@ -23,7 +23,8 @@ const W = 340
 const H = 220
 const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
-// One bean: time for the target ratio against grind setting, one line per grinder I used it with.
+// One bean: estimated time to reach the target ratio at each grind setting, worked out from the flow
+// rate (g/s) of my earlier shots, one line per grinder I used it with.
 // The selected grinder is drawn in crema, others faint. Hand-drawn SVG: no chart library.
 export default function BeanChart({ series, selectedId, targetTime, ratio, ideal, coarserIsHigher, precision }: Props) {
   const [active, setActive] = useState<number | 'ideal' | null>(null) // which point shows its label
@@ -56,7 +57,7 @@ export default function BeanChart({ series, selectedId, targetTime, ratio, ideal
   const point = typeof active === 'number' ? selected?.averages[active] : undefined
   const tip =
     active === 'ideal' && ideal !== null
-      ? { x: x(ideal), y: y(targetTime), text: `Calculated sweetspot for a 1:${ratio} in ${targetTime}: s${ideal}` }
+      ? { x: x(ideal), y: y(targetTime), text: `Estimated grind setting for a 1:${ratio} in ${targetTime} s: ${ideal}` }
       : point && { x: x(point.setting), y: y(point.time), text: `${point.setting}: about ${Math.round(point.time)} s to 1:${ratio} (${point.shots} ${point.shots === 1 ? 'shot' : 'shots'})` }
 
   // Mouse: show on hover. Touch: show on tap (a touch fires pointerleave right after, so ignore that).
@@ -64,7 +65,7 @@ export default function BeanChart({ series, selectedId, targetTime, ratio, ideal
   const tap = (i: number | 'ideal') => () => setActive(active === i ? null : i)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Shot time by grind setting${selected ? ` for ${selected.name}` : ''}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Estimated shot time by grind setting${selected ? ` for ${selected.name}` : ''}`}>
       {/* Grid and axes: hairlines, quiet. */}
       {yTicks.map((t) => (
         <g key={t}>
