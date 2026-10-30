@@ -67,7 +67,7 @@ export default function Settings() {
       </div>
 
       <div className={section}>
-        <NamedListEditor table="grinders" title="Grinders" placeholder="Niche Zero" />
+        <NamedListEditor table="grinders" title="Grinders" placeholder="Niche Zero" linkTo={(id) => `/grinders/${id}`} />
       </div>
 
       <div className={section}>

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useAddNamedItem, useNamedList, useSetNamedItemArchived } from '../hooks/useNamedList'
 import { friendlyError } from '../lib/format'
 import { inputClass, listClass, secondaryButton, sectionTitle } from '../lib/styles'
@@ -8,10 +9,11 @@ type Props = {
   table: NamedTable
   title: string
   placeholder: string
+  linkTo?: (id: string) => string // makes each name a link, e.g. to the grinder's page
 }
 
 // Add/archive editor for one of my group's simple lists. Used for milks, grinders and brewers.
-export default function NamedListEditor({ table, title, placeholder }: Props) {
+export default function NamedListEditor({ table, title, placeholder, linkTo }: Props) {
   const items = useNamedList(table)
   const add = useAddNamedItem(table)
   const setArchived = useSetNamedItemArchived(table)
@@ -38,7 +40,11 @@ export default function NamedListEditor({ table, title, placeholder }: Props) {
         <ul className={listClass}>
           {sorted.map((item) => (
             <li key={item.id} className="flex min-h-11 items-center justify-between gap-3 py-1">
-              <span className={item.archived ? 'text-muted line-through' : ''}>{item.name}</span>
+              {linkTo ? (
+                <Link to={linkTo(item.id)} className={`flex min-h-11 flex-1 items-center ${item.archived ? 'text-muted line-through' : ''}`}>{item.name}</Link>
+              ) : (
+                <span className={item.archived ? 'text-muted line-through' : ''}>{item.name}</span>
+              )}
               <button
                 onClick={() => setArchived.mutate({ id: item.id, archived: !item.archived })}
                 disabled={setArchived.isPending}

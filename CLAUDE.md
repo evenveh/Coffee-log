@@ -44,4 +44,4 @@ Vite · React 19 · TypeScript · Tailwind v4 · React Router 7 · TanStack Quer
 Local dev (`.env.local`) and production use the **same** Supabase project. Anything created, deleted or migrated while testing affects the live app and everyone using it. Say so before running SQL or deleting data.
 
 ## Design ("Dial-in notebook")
-Theme tokens in `src/index.css` (light + dark via `prefers-color-scheme`). Crema is reserved for scores, the ratio, the primary button and focus. The `num` utility (condensed, tabular Archivo) is the signature for recipes, scores and days off roast. Roast-level colours (`RoastSwatch`) carry information. Lists use hairline rows, not cards. Details in `.claude/rules/ui.md`.
+Theme tokens in `src/index.css` (light + dark via `prefers-color-scheme`). Crema is reserved for scores, the ratio, the primary button, focus and the highlighted series in a chart. The `num` utility (condensed, tabular Archivo) is the signature for recipes, scores and days off roast. Roast-level colours (`RoastSwatch`) carry information. Lists use hairline rows, not cards. Details in `.claude/rules/ui.md`.
