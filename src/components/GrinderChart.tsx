@@ -18,8 +18,8 @@ const H = 200
 const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
 // The grinder's fingerprint: how many seconds one step makes in each stretch of the dial.
-// Each bean adds a short line over the stretch it covers; where beans agree, that's the grinder.
-// The selected bean is drawn in crema, the others faint. Hand-drawn SVG: no chart library.
+// Each stretch is a point at its middle, joined into a line per bean; where beans agree, that's
+// the grinder. The selected bean is drawn in crema, the others faint. Hand-drawn SVG: no chart library.
 export default function GrinderChart({ series, selectedId, coarserIsHigher }: Props) {
   const [active, setActive] = useState<number | null>(null) // which of the selected bean's segments shows its value
   const all = series.flatMap((s) => s.segments)
@@ -42,6 +42,8 @@ export default function GrinderChart({ series, selectedId, coarserIsHigher }: Pr
   const selected = series.find((s) => s.id === selectedId)
   const others = series.filter((s) => s.id !== selectedId)
   const shown = active !== null ? selected?.segments[active] : undefined
+  const mid = (seg: { from: number; to: number }) => x((seg.from + seg.to) / 2)
+  const line = (segs: ChartSeries['segments']) => segs.map((seg) => `${mid(seg)},${y(seg.seconds)}`).join(' ')
 
   // Mouse: show on hover. Touch: show on tap (a touch fires pointerleave right after, so ignore that).
   const hover = (i: number | null) => (e: PointerEvent) => e.pointerType === 'mouse' && setActive(i)
@@ -65,29 +67,33 @@ export default function GrinderChart({ series, selectedId, coarserIsHigher }: Pr
         </>
       )}
 
-      {/* Other beans: faint, for comparison. */}
-      {others.flatMap((s) =>
-        s.segments.map((seg) => (
-          <line key={`${s.id}${seg.from}`} x1={x(seg.from)} x2={x(seg.to)} y1={y(seg.seconds)} y2={y(seg.seconds)} className="stroke-muted opacity-35" strokeWidth={2} strokeLinecap="round" />
-        )),
+      {/* Other beans: faint, for comparison. A bean with one stretch is a dot, as there's nothing to join. */}
+      {others.map((s) =>
+        s.segments.length === 1 ? (
+          <circle key={s.id} cx={mid(s.segments[0])} cy={y(s.segments[0].seconds)} r={3} className="fill-muted opacity-35" />
+        ) : (
+          <polyline key={s.id} points={line(s.segments)} fill="none" className="stroke-muted opacity-35" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        ),
       )}
 
-      {selected?.segments.map((seg, i) => (
-        <g key={seg.from} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={() => setActive(active === i ? null : i)} className="cursor-pointer">
-          {/* A taller invisible box, so the thin line is easy to tap. */}
-          <rect x={x(seg.from)} y={y(seg.seconds) - 14} width={x(seg.to) - x(seg.from)} height={28} className="fill-transparent" />
-          <line x1={x(seg.from)} x2={x(seg.to)} y1={y(seg.seconds)} y2={y(seg.seconds)} className="stroke-crema" strokeWidth={2} strokeLinecap="round" />
-          <circle cx={x(seg.from)} cy={y(seg.seconds)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
-          <circle cx={x(seg.to)} cy={y(seg.seconds)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
+      {selected && (
+        <g>
+          <polyline points={line(selected.segments)} fill="none" className="stroke-crema" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          {selected.segments.map((seg, i) => (
+            <g key={seg.from} onPointerEnter={hover(i)} onPointerLeave={hover(null)} onClick={() => setActive(active === i ? null : i)} className="cursor-pointer">
+              <circle cx={mid(seg)} cy={y(seg.seconds)} r={14} className="fill-transparent" />
+              <circle cx={mid(seg)} cy={y(seg.seconds)} r={4} className="fill-crema stroke-bg" strokeWidth={2} />
+            </g>
+          ))}
         </g>
-      ))}
+      )}
 
       {/* The value of the hovered or tapped stretch. paint-order draws a background-coloured outline under the text. */}
       {shown && (
         <text
-          x={x((shown.from + shown.to) / 2)}
+          x={mid(shown)}
           y={y(shown.seconds) - 12}
-          textAnchor={x((shown.from + shown.to) / 2) < W * 0.2 ? 'start' : x((shown.from + shown.to) / 2) > W * 0.8 ? 'end' : 'middle'}
+          textAnchor={mid(shown) < W * 0.2 ? 'start' : mid(shown) > W * 0.8 ? 'end' : 'middle'}
           className="num fill-ink stroke-bg text-xs"
           strokeWidth={4}
           paintOrder="stroke"
