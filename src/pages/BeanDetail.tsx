@@ -92,6 +92,7 @@ export default function BeanDetail() {
             series={lines}
             selectedId={selected.id}
             targetTime={DEFAULT_TARGET.time_s}
+            ratio={DEFAULT_TARGET.ratio}
             ideal={selected.suggestion && selected.suggestion.kind !== 'direction' ? selected.suggestion.setting : null}
             coarserIsHigher={selected.slope ? selected.slope > 0 : null}
             precision={selected.precision}
