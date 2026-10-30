@@ -79,7 +79,11 @@ export default function BeanDetail() {
 
       {selected && (
         <section className="flex flex-col gap-3 border-t border-line pt-5">
-          <h2 className={sectionTitle}>Time for 1:{DEFAULT_TARGET.ratio} at {dose} g</h2>
+          <div>
+            <h2 className={sectionTitle}>Grind profile</h2>
+            {/* The chart's times depend on the ratio and dose, so say which. */}
+            <p className="text-sm text-muted">Time for 1:{DEFAULT_TARGET.ratio} at {dose} g</p>
+          </div>
           <BeanChart series={lines} selectedId={selected.id} targetTime={DEFAULT_TARGET.time_s} coarserIsHigher={selected.slope ? selected.slope > 0 : null} />
 
           <ul className={listClass}>
