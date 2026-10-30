@@ -42,6 +42,16 @@ export function targetFlow(target: Target, dose_g: number): number {
   return (dose_g * target.ratio) / target.time_s
 }
 
+// The dose these shots usually have: the median, to the nearest half gram, so one odd shot
+// doesn't move it. null when none of them has a dose.
+export function usualDose(brews: Brew[]): number | null {
+  const doses = brews.flatMap((b) => (b.dose_g ? [b.dose_g] : [])).sort((a, b) => a - b)
+  if (doses.length === 0) return null
+  const mid = Math.floor(doses.length / 2)
+  const median = doses.length % 2 ? doses[mid] : (doses[mid - 1] + doses[mid]) / 2
+  return Math.round(median * 2) / 2
+}
+
 // A shot's flow as if it had been pulled with dose_g (the dose you're using now). Assumes
 // flow ∝ 1 / dose: in the same basket a bigger dose makes a taller puck, and water flows
 // through it more slowly (Darcy's law). Ignores pre-infusion and puck compression.

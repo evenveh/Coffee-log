@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import RequireAuth from './components/RequireAuth'
+import BeanDetail from './pages/BeanDetail'
 import BeanForm from './pages/BeanForm'
 import Beans from './pages/Beans'
 import BrewDetail from './pages/BrewDetail'
@@ -31,7 +32,8 @@ export default function App() {
         <Route path="/brews/:id/edit" element={<BrewForm />} />
         <Route path="/beans" element={<Beans />} />
         <Route path="/beans/new" element={<BeanForm />} />
-        <Route path="/beans/:id" element={<BeanForm />} />
+        <Route path="/beans/:id" element={<BeanDetail />} />
+        <Route path="/beans/:id/edit" element={<BeanForm />} />
         <Route path="/friends" element={<Friends />} />
         <Route path="/friends/:id" element={<FriendBrew />} />
         <Route path="/settings" element={<Settings />} />
