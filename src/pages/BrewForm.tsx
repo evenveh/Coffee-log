@@ -82,14 +82,14 @@ function recipeFields(brew?: Brew) {
 }
 
 // The grinder a new brew should start with, from my latest brews: the one I last used with this
-// bean for this kind of drink (espresso or filter), else with this bean at all, else for this
-// kind of drink. So a bean keeps "its" grinder, and a new bean gets the usual one. '' if none.
+// bean for this kind of drink (espresso or filter), else with this bean at all. So a bean keeps
+// "its" grinder. '' (None) with no bean or a bean I haven't brewed yet: guessing from other beans
+// would pick the wrong grinder when different beans go through different grinders.
 function defaultGrinder(recent: Brew[] | undefined, form: Pick<FormState, 'bean_id' | 'drink_type'>): string {
+  if (!form.bean_id) return ''
   const kind = drinkInfo(form.drink_type).category
-  const sameKind = (b: Brew) => drinkInfo(b.drink_type).category === kind
-  const sameBean = (b: Brew) => form.bean_id !== '' && b.bean_id === form.bean_id
-  const last = (test: (b: Brew) => boolean) => recent?.find((b) => b.grinder_id && test(b))?.grinder_id
-  return last((b) => sameBean(b) && sameKind(b)) ?? last(sameBean) ?? last(sameKind) ?? ''
+  const last = (test: (b: Brew) => boolean) => recent?.find((b) => b.grinder_id && b.bean_id === form.bean_id && test(b))?.grinder_id
+  return last((b) => drinkInfo(b.drink_type).category === kind) ?? last(() => true) ?? ''
 }
 
 // "How it tasted" — never copied.
