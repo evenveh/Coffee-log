@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BeanChart from '../components/BeanChart'
 import BeanThumb from '../components/BeanThumb'
+import DialInHint from '../components/DialInHint'
 import { useBeans } from '../hooks/useBeans'
 import { useBrews } from '../hooks/useBrews'
 import { useSignedUrls } from '../hooks/usePhotos'
 import { DEFAULT_TARGET, grinderProfile, settingStats, shotFlow, suggest, targetFlow, usualDose, type Suggestion } from '../lib/dialIn'
-import { daysSince } from '../lib/format'
+import { daysSince, parseNumber } from '../lib/format'
 import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
-import { listClass, pageTitle, secondaryButton, sectionTitle } from '../lib/styles'
+import { inputClass, labelClass, listClass, pageTitle, secondaryButton, sectionTitle } from '../lib/styles'
 
 // One bean: its details, and how it grinds on each grinder I've used it with (lib/dialIn.ts).
 // Editing is a separate page (/beans/:id/edit), like brews.
@@ -17,6 +18,8 @@ export default function BeanDetail() {
   const beans = useBeans()
   const brews = useBrews()
   const [picked, setPicked] = useState<string | null>(null) // grinder shown in crema
+  // Find a setting: a dose and target time to plan the next shot with. Never saved; empty = default.
+  const [plan, setPlan] = useState({ dose: '', time: '' })
   const bean = beans.data?.find((b) => b.id === id)
   const photoPath = bean?.photo_path ? thumbPath(bean.photo_path) : null
   const photo = useSignedUrls(photoPath ? [photoPath] : [], BEAN_PHOTO_BUCKET)
@@ -108,7 +111,37 @@ export default function BeanDetail() {
           </ul>
         </section>
       )}
+
+      {/* The same hint as in Log brew, for the grinder picked above, with my own dose and time. */}
+      {selected && dose && (
+        <section className="flex flex-col gap-3 border-t border-line pt-5">
+          <h2 className={sectionTitle}>Find a setting</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <PlanField id="plan-dose" label="Dose (g)" value={plan.dose} max={PLAN_LIMITS.dose} placeholder={String(dose)} onChange={(v) => setPlan((p) => ({ ...p, dose: v }))} />
+            <PlanField id="plan-time" label="Time (s)" value={plan.time} max={PLAN_LIMITS.time} placeholder={String(DEFAULT_TARGET.time_s)} onChange={(v) => setPlan((p) => ({ ...p, time: v }))} />
+          </div>
+          <DialInHint beanId={bean.id} grinderId={selected.id} dose={parseNumber(plan.dose) || dose} time={parseNumber(plan.time)} setting={null} />
+        </section>
+      )}
     </article>
+  )
+}
+
+// The most the Find a setting fields accept. Beyond these the answer is all model and no measurement.
+const PLAN_LIMITS = { dose: 40, time: 120 }
+
+// One small number input. Typing past max sets it to max, so the field shows what's used.
+// The placeholder shows the default that an empty field falls back to.
+function PlanField(props: { id: string; label: string; value: string; max: number; placeholder: string; onChange: (value: string) => void }) {
+  function change(e: { target: { value: string } }) {
+    const n = parseNumber(e.target.value)
+    props.onChange(n && n > props.max ? String(props.max) : e.target.value)
+  }
+  return (
+    <div>
+      <label className={labelClass} htmlFor={props.id}>{props.label}</label>
+      <input id={props.id} inputMode="decimal" value={props.value} onChange={change} placeholder={props.placeholder} className={`${inputClass} num text-xl`} />
+    </div>
   )
 }
 

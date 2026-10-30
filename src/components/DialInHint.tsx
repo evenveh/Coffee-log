@@ -6,12 +6,14 @@ type Props = {
   grinderId: string
   dose: number | null // from the form; empty or unreadable falls back to my last dose
   setting: number | null // from the form, for the expected time
+  time?: number | null // target time; empty or unreadable means the default
 }
 
-// In Log brew: which grind setting to try for this bean, learned from my earlier shots (lib/dialIn.ts).
-// Shows nothing until there's at least one shot with this bean and grinder. Kept to the answer only:
-// how it was worked out (confidence, shots, dose scaling) belongs on a page for the curious, not in the form.
-export default function DialInHint({ beanId, grinderId, dose, setting }: Props) {
+// In Log brew and on the bean page: which grind setting to try for this bean, learned from my
+// earlier shots (lib/dialIn.ts). Shows nothing until there's at least one shot with this bean and
+// grinder. Kept to the answer only: how it was worked out (confidence, shots, dose scaling)
+// belongs on a page for the curious, not in the form.
+export default function DialInHint({ beanId, grinderId, dose, setting, time }: Props) {
   const brews = useBrews()
   if (!brews.data) return null
 
@@ -20,20 +22,21 @@ export default function DialInHint({ beanId, grinderId, dose, setting }: Props) 
   const doseG = dose || brews.data.find((b) => b.bean_id === beanId && b.grinder_id === grinderId && b.dose_g)?.dose_g
   if (!doseG) return null
 
+  const target = { ...DEFAULT_TARGET, time_s: time || DEFAULT_TARGET.time_s } // || again: NaN falls back
   const stats = settingStats(brews.data, beanId, grinderId, doseG)
   const profile = grinderProfile(brews.data, grinderId, doseG)
-  const suggestion = suggest(stats, profile, targetFlow(DEFAULT_TARGET, doseG))
+  const suggestion = suggest(stats, profile, targetFlow(target, doseG))
   if (!suggestion) return null
 
   // Time for the target ratio at the setting typed in the form: yield / flow.
   const flow = setting != null && !Number.isNaN(setting) ? predictFlow(stats, profile, setting) : null
-  const expected = flow ? Math.round((doseG * DEFAULT_TARGET.ratio) / flow) : null
+  const expected = flow ? Math.round((doseG * target.ratio) / flow) : null
 
   return (
     <div aria-live="polite" className="flex flex-col gap-0.5 text-sm">
-      <Headline suggestion={suggestion} goal={`1:${DEFAULT_TARGET.ratio} in ${DEFAULT_TARGET.time_s} s`} />
+      <Headline suggestion={suggestion} goal={`1:${target.ratio} in ${target.time_s} s`} />
       {expected !== null && (
-        <p>At <span className="num text-base">{setting}</span>, 1:{DEFAULT_TARGET.ratio} takes about <span className="num text-base">{expected} s</span></p>
+        <p>At <span className="num text-base">{setting}</span>, 1:{target.ratio} takes about <span className="num text-base">{expected} s</span></p>
       )}
     </div>
   )
