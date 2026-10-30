@@ -8,14 +8,9 @@ type Props = {
   setting: number | null // from the form, for the expected time
 }
 
-const CONFIDENCE = {
-  good: "Between two settings you've tried",
-  medium: "Extended past the settings you've tried",
-  low: 'A rough guess from your other beans on this grinder',
-} as const
-
 // In Log brew: which grind setting to try for this bean, learned from my earlier shots (lib/dialIn.ts).
-// Shows nothing until there's at least one shot with this bean and grinder.
+// Shows nothing until there's at least one shot with this bean and grinder. Kept to the answer only:
+// how it was worked out (confidence, shots, dose scaling) belongs on a page for the curious, not in the form.
 export default function DialInHint({ beanId, grinderId, dose, setting }: Props) {
   const brews = useBrews()
   if (!brews.data) return null
@@ -34,19 +29,12 @@ export default function DialInHint({ beanId, grinderId, dose, setting }: Props) 
   const flow = setting != null && !Number.isNaN(setting) ? predictFlow(stats, profile, setting) : null
   const expected = flow ? Math.round((doseG * DEFAULT_TARGET.ratio) / flow) : null
 
-  const shots = stats.reduce((a, s) => a + s.shots, 0)
-  const basis = `Based on ${shots} ${shots === 1 ? 'shot' : 'shots'}, scaled to ${doseG} g.`
-
   return (
     <div aria-live="polite" className="flex flex-col gap-0.5 text-sm">
       <Headline suggestion={suggestion} goal={`1:${DEFAULT_TARGET.ratio} in ${DEFAULT_TARGET.time_s} s`} />
       {expected !== null && (
         <p>At <span className="num text-base">{setting}</span>, 1:{DEFAULT_TARGET.ratio} takes about <span className="num text-base">{expected} s</span></p>
       )}
-      <p className="text-muted">
-        {suggestion.kind === 'setting' && `${CONFIDENCE[suggestion.confidence]}. `}
-        {basis}
-      </p>
     </div>
   )
 }
