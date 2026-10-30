@@ -10,7 +10,7 @@ type Props = {
 
 const CONFIDENCE = {
   good: "Between two settings you've tried",
-  medium: "Estimated from this bean's shots, outside the settings you've tried",
+  medium: "Extended past the settings you've tried",
   low: 'A rough guess from your other beans on this grinder',
 } as const
 

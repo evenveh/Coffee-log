@@ -93,7 +93,7 @@ export function suggest(stats: SettingStat[], profile: GrinderProfile, goal: num
     }
   }
 
-  // 2. Otherwise extend a line from the nearest setting (see lineSlope). No cap on the jump:
+  // 2. Otherwise extend a line from the nearest setting (slope from lineSlope). No cap on the jump:
   //    a step means something different on every grinder, so the confidence says how far to trust it.
   const { slope, fromBean } = lineSlope(stats, profile)
   if (slope) {
@@ -130,12 +130,21 @@ export function predictFlow(stats: SettingStat[], profile: GrinderProfile, setti
   return flow > 0 ? flow : null
 }
 
-// Which slope to extend a line with: the bean's own if it has one, else the grinder's.
-// A bean slope pointing the other way from the grinder's is noise (or an ageing bean), so it's not trusted.
+// How many shots of evidence the grinder's slope counts as when blended with the bean's own.
+export const GRINDER_WEIGHT = 4
+
+// Which slope to extend a line with: the bean's own and the grinder's, blended by how much
+// data the bean has ("shrinkage"). With 4 shots on the bean it's 50/50, with 12 it's 75 % bean.
+// A bean slope pointing the other way from the grinder's is noise (or an ageing bean), so it's not used.
 function lineSlope(stats: SettingStat[], profile: GrinderProfile): { slope: number | null; fromBean: boolean } {
   const bean = stats.length >= 2 ? slopeOf(stats) : null
   const fromBean = bean !== null && bean !== 0 && (profile.slope === null || Math.sign(bean) === Math.sign(profile.slope))
-  return { slope: fromBean ? bean : profile.slope, fromBean }
+  if (!fromBean) return { slope: profile.slope, fromBean }
+  if (profile.slope === null) return { slope: bean, fromBean }
+
+  const shots = stats.reduce((a, s) => a + s.shots, 0)
+  const w = shots / (shots + GRINDER_WEIGHT)
+  return { slope: w * bean + (1 - w) * profile.slope, fromBean }
 }
 
 // Least-squares slope of flow against setting: how much flow changes per +1 on the dial.
