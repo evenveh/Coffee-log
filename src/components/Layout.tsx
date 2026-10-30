@@ -2,7 +2,7 @@ import { Bean, ChevronLeft, List, Plus, Settings, Users } from 'lucide-react'
 import { Link, matchPath, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 // Pages that show a form: the bottom nav hides and the form's StickyActions take its place.
-const FORM_ROUTES = ['/brews/new', '/brews/:id/edit', '/beans/new', '/beans/:id']
+const FORM_ROUTES = ['/brews/new', '/brews/:id/edit', '/beans/new', '/beans/:id/edit']
 
 // The bottom nav's tabs: these show the app name instead of a Back button.
 const TOP_LEVEL = ['/', '/beans', '/friends', '/settings']

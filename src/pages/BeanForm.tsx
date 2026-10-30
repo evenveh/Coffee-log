@@ -10,7 +10,7 @@ import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { inputClass, labelClass, pageTitle, primaryButton, secondaryButton, sectionTitle, textButton } from '../lib/styles'
 import { ROAST_LEVELS, type Bean, type RoastLevel } from '../lib/types'
 
-// Route wrapper: /beans/new (create) or /beans/:id (edit).
+// Route wrapper: /beans/new (create) or /beans/:id/edit (edit).
 export default function BeanForm() {
   const { id } = useParams()
   const beans = useBeans() // same cached list as the Beans page, so usually no network request
@@ -72,10 +72,11 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
               await setPhoto.mutateAsync({ bean: { id: beanId, photo_path: initial?.photo_path ?? null }, file: photo ?? null })
             } catch (err) {
               // The bean is saved, so don't stay here (saving a new bean again would duplicate it).
-              window.alert(`The bean was saved, but the photo couldn't be updated: ${friendlyError(err)}\nYou can try again from the bean's page.`)
+              window.alert(`The bean was saved, but the photo couldn't be updated: ${friendlyError(err)}\nYou can try again with Edit on the bean's page.`)
             }
           }
-          navigate('/beans')
+          // To the bean's page, replacing the form in history (as brews do), so Back doesn't reopen it.
+          navigate(`/beans/${beanId}`, { replace: true })
         },
       },
     )
@@ -175,7 +176,7 @@ function BeanFormFields({ initial }: { initial?: Bean }) {
       )}
 
       <StickyActions>
-        <button type="button" onClick={() => navigate('/beans')} className={secondaryButton}>Cancel</button>
+        <button type="button" onClick={() => navigate(-1)} className={secondaryButton}>Cancel</button>
         <button disabled={save.isPending || setPhoto.isPending} className={`${primaryButton} flex-1`}>
           {save.isPending || setPhoto.isPending ? 'Saving…' : 'Save bean'}
         </button>
