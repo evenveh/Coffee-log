@@ -84,7 +84,13 @@ export default function BeanDetail() {
             {/* The chart's times depend on the ratio and dose, so say which. */}
             <p className="text-sm text-muted">Time for 1:{DEFAULT_TARGET.ratio} at {dose} g</p>
           </div>
-          <BeanChart series={lines} selectedId={selected.id} targetTime={DEFAULT_TARGET.time_s} coarserIsHigher={selected.slope ? selected.slope > 0 : null} />
+          <BeanChart
+            series={lines}
+            selectedId={selected.id}
+            targetTime={DEFAULT_TARGET.time_s}
+            ideal={selected.suggestion && selected.suggestion.kind !== 'direction' ? selected.suggestion.setting : null}
+            coarserIsHigher={selected.slope ? selected.slope > 0 : null}
+          />
 
           <ul className={listClass}>
             {lines.map((l) => (
