@@ -52,8 +52,8 @@ export default function BeanChart({ series, selectedId, targetTime, ratio, ideal
   const selected = series.find((s) => s.id === selectedId)
   const others = series.filter((s) => s.id !== selectedId)
   const line = (points: Point[]) => points.map((p) => `${x(p.setting)},${y(p.time)}`).join(' ')
-  // The label for the hovered or tapped point. The times are converted (how long that setting
-  // takes to reach the target ratio), not measured, so the label says "about … to 1:2".
+  // The label for the hovered or tapped point. The times are estimates (how long that setting
+  // takes to reach the target ratio); the subtitle on the bean page says so, so the label stays short.
   const point = typeof active === 'number' ? selected?.averages[active] : undefined
   const tip =
     active === 'ideal' && ideal !== null
