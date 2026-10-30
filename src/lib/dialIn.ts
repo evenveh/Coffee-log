@@ -42,17 +42,23 @@ export function targetFlow(target: Target, dose_g: number): number {
   return (dose_g * target.ratio) / target.time_s
 }
 
+// A shot's flow as if it had been pulled with dose_g (the dose you're using now). Assumes
+// flow ∝ 1 / dose: in the same basket a bigger dose makes a taller puck, and water flows
+// through it more slowly (Darcy's law). Ignores pre-infusion and puck compression.
+// Shots without a dose aren't scaled.
+export function scaledFlow(brew: Brew, dose_g: number): number | null {
+  const flow = shotFlow(brew)
+  return flow == null ? null : (flow * (brew.dose_g ?? dose_g)) / dose_g
+}
+
 // One entry per setting used with this bean and grinder, sorted from low to high setting.
-// Each shot's flow is scaled to dose_g (the dose you're using now). Assumes flow ∝ 1 / dose:
-// in the same basket a bigger dose makes a taller puck, and water flows through it more slowly
-// (Darcy's law). Ignores pre-infusion and puck compression. Shots without a dose aren't scaled.
+// Flows are scaled to dose_g (see scaledFlow).
 export function settingStats(brews: Brew[], beanId: string, grinderId: string, dose_g: number): SettingStat[] {
   const flows = new Map<number, number[]>()
   for (const b of brews) {
-    const flow = shotFlow(b)
+    const flow = scaledFlow(b, dose_g)
     if (b.bean_id !== beanId || b.grinder_id !== grinderId || b.grind_setting == null || flow == null) continue
-    const scaled = (flow * (b.dose_g ?? dose_g)) / dose_g
-    flows.set(b.grind_setting, [...(flows.get(b.grind_setting) ?? []), scaled])
+    flows.set(b.grind_setting, [...(flows.get(b.grind_setting) ?? []), flow])
   }
   return [...flows]
     .map(([setting, fs]) => ({ setting, shots: fs.length, flow: fs.reduce((a, f) => a + f, 0) / fs.length }))

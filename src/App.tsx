@@ -7,6 +7,7 @@ import BrewDetail from './pages/BrewDetail'
 import BrewForm from './pages/BrewForm'
 import BrewList from './pages/BrewList'
 import Friends from './pages/Friends'
+import GrinderDetail from './pages/GrinderDetail'
 import Login from './pages/Login'
 import Settings from './pages/Settings'
 import FriendBrew from './pages/FriendBrew'
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/friends" element={<Friends />} />
         <Route path="/friends/:id" element={<FriendBrew />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/grinders/:id" element={<GrinderDetail />} />
       </Route>
 
       {/* Unknown URL -> back to the brew list */}
