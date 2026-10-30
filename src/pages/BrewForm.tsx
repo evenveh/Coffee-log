@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import BeanThumb from '../components/BeanThumb'
+import DialInHint from '../components/DialInHint'
 import PendingPhotos from '../components/PendingPhotos'
 import ScoreInput from '../components/ScoreInput'
 import StickyActions from '../components/StickyActions'
@@ -273,6 +274,15 @@ function BrewFormFields({ initial, copyFrom, lastBrew }: FieldsProps) {
           </div>
           <NumberField id="grind_setting" label="Grind setting" value={form.grind_setting} onChange={text('grind_setting')} placeholder="14" keyboard={'text'} />
         </div>
+        {/* New espresso brews only: when editing, the shot has already been pulled. */}
+        {!initial && !isFilter && form.bean_id && form.grinder_id && (
+          <DialInHint
+            beanId={form.bean_id}
+            grinderId={form.grinder_id}
+            dose={parseNumber(form.dose_g)}
+            setting={parseNumber(form.grind_setting)}
+          />
+        )}
 
         {isFilter && (
           <div>
