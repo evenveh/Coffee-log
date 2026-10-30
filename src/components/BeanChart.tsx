@@ -14,6 +14,7 @@ type Props = {
   targetTime: number
   ideal: number | null // the selected grinder's suggested setting, drawn where it meets the target
   coarserIsHigher: boolean | null // from the selected grinder's slope; null = not known yet
+  precision: number // decimals the selected grinder's settings are logged in
 }
 
 // Drawing size in SVG units. The SVG scales to the page width, so these are proportions, not pixels.
@@ -23,7 +24,7 @@ const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
 // One bean: time for the target ratio against grind setting, one line per grinder I used it with.
 // The selected grinder is drawn in crema, others faint. Hand-drawn SVG: no chart library.
-export default function BeanChart({ series, selectedId, targetTime, ideal, coarserIsHigher }: Props) {
+export default function BeanChart({ series, selectedId, targetTime, ideal, coarserIsHigher, precision }: Props) {
   const [active, setActive] = useState<number | null>(null) // which average point shows its value
   const all = series.flatMap((s) => s.averages)
   if (all.length === 0) return null
@@ -40,7 +41,9 @@ export default function BeanChart({ series, selectedId, targetTime, ideal, coars
   const y = (t: number) => PAD.top + ((yMax - t) / (yMax - yMin)) * (H - PAD.top - PAD.bottom)
 
   const range = xMax - xMin
-  const xStep = range > 12 ? 5 : range > 6 ? 2 : 1
+  // Half steps while the labels still fit, but never finer than the settings are logged in:
+  // a grinder logged in whole steps has no halves to dial.
+  const xStep = range > 12 ? 5 : range > 6 ? 2 : range > 5 || precision === 0 ? 1 : 0.5
   const xTicks = steps(Math.ceil(xMin / xStep) * xStep, xMax, xStep)
   const yTicks = steps(yMin, yMax, 10)
 

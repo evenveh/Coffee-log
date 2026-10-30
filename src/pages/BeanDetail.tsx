@@ -43,6 +43,7 @@ export default function BeanDetail() {
           id: grinderId,
           name: shots.find((b) => b.grinder_id === grinderId)?.grinder?.name ?? 'Unknown grinder',
           slope: profile.slope,
+          precision: profile.precision,
           suggestion: suggest(stats, profile, targetFlow(DEFAULT_TARGET, dose)),
           averages: stats.map((s) => ({ setting: s.setting, time: (dose * DEFAULT_TARGET.ratio) / s.flow, shots: s.shots })),
         }
@@ -90,6 +91,7 @@ export default function BeanDetail() {
             targetTime={DEFAULT_TARGET.time_s}
             ideal={selected.suggestion && selected.suggestion.kind !== 'direction' ? selected.suggestion.setting : null}
             coarserIsHigher={selected.slope ? selected.slope > 0 : null}
+            precision={selected.precision}
           />
 
           <ul className={listClass}>
