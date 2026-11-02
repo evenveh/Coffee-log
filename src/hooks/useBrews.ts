@@ -33,6 +33,22 @@ export function useBrews() {
   })
 }
 
+// Brews for the dial-in maths (lib/dialIn.ts): mine and my group's, newest first. No user filter,
+// on purpose: RLS returns my own brews plus my group's, and a group is a household sharing its
+// grinders, so their shots on the same bean and grinder tell me about my setup too (separate
+// physical grinders need separate grinder rows). Not under ['brews'], so it never mixes into my
+// own log, Log brew's defaults or anything else that's only about me.
+export function useDialInBrews() {
+  return useQuery({
+    queryKey: ['dial-in-brews'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('brews').select(BREW_SELECT).order('brewed_at', { ascending: false })
+      if (error) throw error
+      return data as BrewWithRelations[]
+    },
+  })
+}
+
 // One of my brews. Cached as ['brews', id], so invalidating ['brews'] refreshes this too.
 // Also filtered by user, so a friend's brew id shows "doesn't exist" instead of an edit form.
 export function useBrew(id: string | undefined) {
@@ -69,7 +85,7 @@ export function useSaveBrew() {
       if (error) throw error
       return data.id as string
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['brews'] }),
+    onSuccess: () => invalidateBrews(queryClient),
   })
 }
 
@@ -90,6 +106,11 @@ export function useDeleteBrew() {
       const { error } = await supabase.from('brews').delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['brews'] }),
+    onSuccess: () => invalidateBrews(queryClient),
   })
+}
+
+// Saving or deleting a brew changes my own log and the dial-in data (useDialInBrews).
+function invalidateBrews(queryClient: ReturnType<typeof useQueryClient>) {
+  return Promise.all([queryClient.invalidateQueries({ queryKey: ['brews'] }), queryClient.invalidateQueries({ queryKey: ['dial-in-brews'] })])
 }

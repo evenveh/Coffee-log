@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import GrinderChart from '../components/GrinderChart'
-import { useBrews } from '../hooks/useBrews'
+import { useDialInBrews } from '../hooks/useBrews'
 import { useNamedList } from '../hooks/useNamedList'
 import { DEFAULT_TARGET, grinderProfile, secondsPerStep, segments, settingStats, shotFlow, suggest, targetFlow, usualDose, type Suggestion } from '../lib/dialIn'
 import { listClass, pageTitle, sectionTitle } from '../lib/styles'
 
 // One grinder: how big a step is across the dial (its fingerprint) and where each bean lands,
-// from my own espresso shots (lib/dialIn.ts).
+// from my and my group's espresso shots (useDialInBrews, lib/dialIn.ts).
 export default function GrinderDetail() {
   const { id } = useParams()
-  const brews = useBrews()
+  const brews = useDialInBrews()
   const grinders = useNamedList('grinders')
   const [picked, setPicked] = useState<string | null>(null) // bean shown in the chart
 
@@ -19,7 +19,7 @@ export default function GrinderDetail() {
   if (!grinder || !brews.data) return <p className="text-muted">This grinder doesn't exist, or it's not in your list.</p>
   const all = brews.data
 
-  // My espresso shots on this grinder, newest first. Everything is scaled to my usual dose
+  // Espresso shots on this grinder (mine and my group's), newest first. Everything is scaled to the usual dose
   // (see usualDose), so shots of different sizes compare and one odd shot doesn't move the chart.
   const shots = all.filter((b) => b.grinder_id === grinder.id && b.grind_setting != null && shotFlow(b) != null)
   const dose = usualDose(shots)

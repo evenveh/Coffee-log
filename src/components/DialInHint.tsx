@@ -1,24 +1,24 @@
-import { useBrews } from '../hooks/useBrews'
+import { useDialInBrews } from '../hooks/useBrews'
 import { DEFAULT_TARGET, grinderProfile, predictFlow, settingStats, suggest, targetFlow, type Suggestion } from '../lib/dialIn'
 
 type Props = {
   beanId: string
   grinderId: string
-  dose: number | null // from the form; empty or unreadable falls back to my last dose
+  dose: number | null // from the form; empty or unreadable falls back to the last dose
   setting: number | null // from the form, for the expected time
   time?: number | null // target time; empty or unreadable means the default
 }
 
-// In Log brew and on the bean page: which grind setting to try for this bean, learned from my
-// earlier shots (lib/dialIn.ts). Shows nothing until there's at least one shot with this bean and
-// grinder. Kept to the answer only: how it was worked out (confidence, shots, dose scaling)
-// belongs on a page for the curious, not in the form.
+// In Log brew and on the bean page: which grind setting to try for this bean, learned from
+// earlier shots, mine and my group's (useDialInBrews, lib/dialIn.ts). Shows nothing until
+// there's at least one shot with this bean and grinder. Kept to the answer only: how it was
+// worked out (confidence, shots, dose scaling) belongs on a page for the curious, not in the form.
 export default function DialInHint({ beanId, grinderId, dose, setting, time }: Props) {
-  const brews = useBrews()
+  const brews = useDialInBrews()
   if (!brews.data) return null
 
   // || rather than ??: an unreadable dose field gives NaN, which should fall back too.
-  // brews.data is newest first, so find() gives my latest dose with this bean and grinder.
+  // brews.data is newest first, so find() gives the latest dose with this bean and grinder.
   const doseG = dose || brews.data.find((b) => b.bean_id === beanId && b.grinder_id === grinderId && b.dose_g)?.dose_g
   if (!doseG) return null
 
