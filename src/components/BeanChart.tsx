@@ -24,7 +24,7 @@ const H = 220
 const PAD = { top: 16, right: 12, bottom: 36, left: 36 }
 
 // One bean: estimated time to reach the target ratio at each grind setting, worked out from the flow
-// rate (g/s) of my earlier shots, one line per grinder I used it with.
+// rate (g/s) of earlier shots (mine and my group's), one line per grinder.
 // The selected grinder is drawn in crema, others faint. Hand-drawn SVG: no chart library.
 export default function BeanChart({ series, selectedId, targetTime, ratio, ideal, coarserIsHigher, precision }: Props) {
   const [active, setActive] = useState<number | 'ideal' | null>(null) // which point shows its label

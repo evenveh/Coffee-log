@@ -1,8 +1,9 @@
 // Dial-in maths for espresso. Learns how flow (grams out per second) changes with the
 // grind setting, per bean and per grinder, and suggests the next setting to try.
 // Works for any grinder: a setting is just a number that goes up evenly. Which way is
-// finer, and how precisely settings are logged, is learned from the user's own brews.
-// Pass only the user's own brews (useBrews): a friend's grinder and machine behave differently.
+// finer, and how precisely settings are logged, is learned from the brews passed in.
+// Pass brews from one setup (useDialInBrews: mine and my group's, a household sharing its grinders).
+// A grinder row stands for one physical grinder; separate grinders need separate rows.
 import { drinkInfo } from './drinkTypes'
 import type { Brew } from './types'
 

@@ -4,19 +4,19 @@ import BeanChart from '../components/BeanChart'
 import BeanThumb from '../components/BeanThumb'
 import DialInHint from '../components/DialInHint'
 import { useBeans } from '../hooks/useBeans'
-import { useBrews } from '../hooks/useBrews'
+import { useDialInBrews } from '../hooks/useBrews'
 import { useSignedUrls } from '../hooks/usePhotos'
 import { DEFAULT_TARGET, grinderProfile, settingStats, shotFlow, suggest, targetFlow, usualDose, type Suggestion } from '../lib/dialIn'
 import { daysSince, parseNumber } from '../lib/format'
 import { BEAN_PHOTO_BUCKET, thumbPath } from '../lib/photos'
 import { inputClass, labelClass, listClass, pageTitle, secondaryButton, sectionTitle } from '../lib/styles'
 
-// One bean: its details, and how it grinds on each grinder I've used it with (lib/dialIn.ts).
+// One bean: its details, and how it grinds on each grinder it's been used with, by me or my group (lib/dialIn.ts).
 // Editing is a separate page (/beans/:id/edit), like brews.
 export default function BeanDetail() {
   const { id } = useParams()
   const beans = useBeans()
-  const brews = useBrews()
+  const brews = useDialInBrews()
   const [picked, setPicked] = useState<string | null>(null) // grinder shown in crema
   // Find a setting: a dose and target time to plan the next shot with. Never saved; empty = default.
   const [plan, setPlan] = useState({ dose: '', time: '' })
@@ -32,7 +32,7 @@ export default function BeanDetail() {
   const details = [bean.origin, bean.process?.toLowerCase()].filter(Boolean).join(', ')
   const days = bean.roast_date ? daysSince(bean.roast_date) : null
 
-  // My espresso shots with this bean, newest first, scaled to the dose I usually use for it.
+  // Espresso shots with this bean (mine and my group's), newest first, scaled to its usual dose.
   const shots = all.filter((b) => b.bean_id === bean.id && b.grinder_id && b.grind_setting != null && shotFlow(b) != null)
   const dose = usualDose(shots)
 
@@ -86,7 +86,7 @@ export default function BeanDetail() {
           <div>
             <h2 className={sectionTitle}>Grind profile</h2>
             {/* The chart's times depend on the ratio and dose, so say which. */}
-            <p className="text-sm text-muted">Estimated time for a 1:{DEFAULT_TARGET.ratio} shot at {dose} g, based on the flow rates of your earlier shots</p>
+            <p className="text-sm text-muted">Estimated time for a 1:{DEFAULT_TARGET.ratio} shot at {dose} g, based on the flow rates of earlier shots</p>
           </div>
           <BeanChart
             series={lines}
